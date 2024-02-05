@@ -1,21 +1,37 @@
-import { Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Route, Routes, useNavigate } from "react-router-dom";
 import "./App.css";
-import Layout from "./components/Layout/Layout";
-import ClientList from "./pages/ClientList";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import CustomLayouts from "./components/Layout/CustomLayouts";
+import ClientList from "./views/ClientList";
+import ForgotPassword from "./views/ForgotPassword";
+import Home from "./views/Home";
+import Login from "./views/Login";
+import NotFound from "./views/NotFound";
+import Signup from "./views/Signup";
 
 function App() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    console.log(user);
+    if (user) {
+      navigate("/");
+    } else {
+      navigate("/login");
+    }
+  }, []);
   return (
     <>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<CustomLayouts />}>
           <Route index element={<Home />} />
           <Route path="client-list" element={<ClientList />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Routes>
     </>
   );
