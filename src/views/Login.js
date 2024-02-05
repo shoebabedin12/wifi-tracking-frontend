@@ -1,13 +1,54 @@
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { Button, Checkbox, Form, Input } from "antd";
+import { Button, Checkbox, Form, Input, Space, message } from "antd";
 import { Content } from "antd/es/layout/layout";
-import React from "react";
-import { Link } from "react-router-dom";
+import axios from "axios";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const onFinish = (values) => {
-    console.log("Received values of form: ", values);
+  const api = process.env.REACT_APP_API_KEY;
+  const [form] = Form.useForm();
+  const navigate = useNavigate()
+  const [loadings, setLoadings] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const enterLoading = (index) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
+    setTimeout(() => {
+      setLoadings((prevLoadings) => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
+        return newLoadings;
+      });
+    }, 6000);
   };
+
+  const onFinish = (values) => {
+    axios
+      .post(`${api}/auth/login`, values)
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200) {
+          // messageApi.open({
+          //   type: "success",
+          //   content: response.data.message
+          // });
+          // navigate("/")
+        }
+      })
+      .catch((error) => {
+        // messageApi.open({
+        //   type: "error",
+        //   content: error.response.data.message
+        // });
+        console.log(error);
+      });
+  };
+
 
   return (
     <>
@@ -66,6 +107,8 @@ const Login = () => {
             </Link>
           </Form.Item>
           <Form.Item>
+          <Space size="middle">
+
             <Button
               type="primary"
               htmlType="submit"
@@ -74,6 +117,7 @@ const Login = () => {
               Log in
             </Button>
             Or <Link to="/signup">register now!</Link>
+          </Space>
           </Form.Item>
         </Form>
       </Content>

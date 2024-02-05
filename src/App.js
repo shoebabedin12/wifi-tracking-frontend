@@ -11,10 +11,10 @@ import Signup from "./views/Signup";
 
 function App() {
   const navigate = useNavigate();
+  
 
   useEffect(() => {
     const user = localStorage.getItem("user");
-    console.log(user);
     if (user) {
       navigate("/");
     } else {
@@ -23,6 +23,7 @@ function App() {
   }, []);
   return (
     <>
+    
       <Routes>
         <Route path="/" element={<CustomLayouts />}>
           <Route index element={<Home />} />

@@ -1,13 +1,8 @@
-import {
-    Button,
-    Checkbox,
-    Form,
-    Input,
-    Select
-} from "antd";
+import { Button, Checkbox, Form, Input, Select, Space, message } from "antd";
 import { Content } from "antd/es/layout/layout";
-import React from "react";
-import { Link } from "react-router-dom";
+import axios from "axios";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 const { Option } = Select;
 
 const formItemLayout = {
@@ -41,10 +36,49 @@ const tailFormItemLayout = {
   }
 };
 const Signup = () => {
+  const api = process.env.REACT_APP_API_KEY;
   const [form] = Form.useForm();
-  const onFinish = (values) => {
-    console.log("Received values of form: ", values);
+  const navigate = useNavigate()
+  const [loadings, setLoadings] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const enterLoading = (index) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
+    setTimeout(() => {
+      setLoadings((prevLoadings) => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
+        return newLoadings;
+      });
+    }, 6000);
   };
+
+  const onFinish = (values) => {
+    axios
+      .post(`${api}/auth/signup`, values)
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200) {
+          messageApi.open({
+            type: "success",
+            content: response.data.message
+          });
+          navigate("/login")
+        }
+      })
+      .catch((error) => {
+        messageApi.open({
+          type: "error",
+          content: error.response.data.message
+        });
+        console.log(error);
+      });
+  };
+
   const prefixSelector = (
     <Form.Item name="prefix" noStyle>
       <Select
@@ -58,13 +92,15 @@ const Signup = () => {
     </Form.Item>
   );
   return (
+    <>
+{contextHolder}
     <Content
       style={{
         position: "fixed",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        margin: "24px 16px 0",
+        margin: "24px 16px 0"
       }}
     >
       <Form
@@ -154,7 +190,6 @@ const Signup = () => {
           />
         </Form.Item>
 
-
         <Form.Item
           name="gender"
           label="Gender"
@@ -190,13 +225,23 @@ const Signup = () => {
           </Checkbox>
         </Form.Item>
         <Form.Item {...tailFormItemLayout}>
-          <Button type="primary" htmlType="submit">
-            Register
-          </Button>
-          Or <Link to="/login">Login now!</Link>
+          <Space size="middle">
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loadings[0]}
+              onClick={() => enterLoading(0)}
+            >
+              Register
+            </Button>
+            <span>
+              Or <Link to="/login">Login now!</Link>
+            </span>
+          </Space>
         </Form.Item>
       </Form>
     </Content>
+    </>
   );
 };
 
