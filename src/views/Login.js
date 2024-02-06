@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
   const api = process.env.REACT_APP_API_KEY;
   const [form] = Form.useForm();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [loadings, setLoadings] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
 
@@ -33,25 +33,26 @@ const Login = () => {
       .then((response) => {
         console.log(response);
         if (response.status === 200) {
-          // messageApi.open({
-          //   type: "success",
-          //   content: response.data.message
-          // });
-          // navigate("/")
+          localStorage.setItem("user", JSON.stringify(response?.data.user));
+          messageApi.open({
+            type: "success",
+            content: response.data.message
+          });
+          navigate("/");
         }
       })
       .catch((error) => {
-        // messageApi.open({
-        //   type: "error",
-        //   content: error.response.data.message
-        // });
+        messageApi.open({
+          type: "error",
+          content: error.response.data.message
+        });
         console.log(error);
       });
   };
 
-
   return (
     <>
+      {contextHolder}
       <Content
         style={{
           position: "fixed",
@@ -62,6 +63,7 @@ const Login = () => {
         }}
       >
         <Form
+          form={form}
           name="normal_login"
           className="login-form"
           initialValues={{
@@ -70,7 +72,7 @@ const Login = () => {
           onFinish={onFinish}
         >
           <Form.Item
-            name="username"
+            name="email"
             rules={[
               {
                 required: true,
@@ -107,17 +109,18 @@ const Login = () => {
             </Link>
           </Form.Item>
           <Form.Item>
-          <Space size="middle">
-
-            <Button
-              type="primary"
-              htmlType="submit"
-              className="login-form-button"
-            >
-              Log in
-            </Button>
-            Or <Link to="/signup">register now!</Link>
-          </Space>
+            <Space size="middle">
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="login-form-button"
+                loading={loadings[0]}
+                onClick={() => enterLoading(0)}
+              >
+                Log in
+              </Button>
+              Or <Link to="/signup">register now!</Link>
+            </Space>
           </Form.Item>
         </Form>
       </Content>

@@ -1,4 +1,4 @@
-import { Layout, message, theme } from 'antd';
+import { Layout, theme } from 'antd';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
 import React from 'react';
 import { Outlet } from 'react-router-dom';
@@ -8,7 +8,6 @@ import SideNav from '../Common/sideNav/SideNav';
 
 
 const CustomLayouts = () => {
-  const [contextHolder] = message.useMessage();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -27,7 +26,6 @@ const CustomLayouts = () => {
             margin: '24px 16px 0',
           }}
         >
-        {contextHolder}
           <div
             style={{
               padding: 24,

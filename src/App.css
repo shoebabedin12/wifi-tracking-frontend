@@ -12,6 +12,9 @@ body {
   margin: 16px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 6px;
+  color: #fff;
+  text-align: center;
+  line-height: 32px;
 }
 #components-form-demo-normal-login .login-form {
   max-width: 300px;

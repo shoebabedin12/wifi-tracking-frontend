@@ -1,31 +1,47 @@
-import { HomeOutlined } from '@ant-design/icons';
-import { Menu } from 'antd';
-import Sider from 'antd/es/layout/Sider';
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-
+import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { Menu } from "antd";
+import Sider from "antd/es/layout/Sider";
+import React, { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
 
 const items = [
-    {
-      key: 0,
-      icon: <HomeOutlined />,
-      label: 'Home',
-      path: '/',
-    },
-    {
-      key: 1,
-      icon: <HomeOutlined />,
-      label: 'Profile',
-      path: '/profile',
-    },
-  ];
+  {
+    key: 0,
+    icon: <HomeOutlined />,
+    label: "Home",
+    path: "/"
+  },
+  {
+    key: 1,
+    icon: <UserOutlined />,
+    label: "Profile",
+    path: "/profile"
+  }
+];
 const SideNav = () => {
-    const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [user, setUser] = useState("");
+  useEffect(() => {
+    const storedUserData = localStorage.getItem("user");
+
+    if (storedUserData) {
+      const userData = JSON.parse(storedUserData);
+      setUser(userData);
+    }
+  }, []);
 
   return (
     <>
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)} breakpoint="lg">
-        <div className="demo-logo-vertical"></div>
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={(value) => setCollapsed(value)}
+        breakpoint="lg"
+      >
+        <div className="demo-logo-vertical">
+        {user?.email && user.email.split("@")[0]}
+
+        </div>
         <Menu theme="dark" mode="inline" defaultSelectedKeys={["0"]}>
           {items.map((item) => (
             <Menu.Item key={item.key} icon={item.icon}>
