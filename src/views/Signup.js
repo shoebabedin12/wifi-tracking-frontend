@@ -41,7 +41,7 @@ const Signup = () => {
   const navigate = useNavigate();
   const [loadings, setLoadings] = useState([]);
   const [messageApi, contextHolder] = message.useMessage();
-console.log(api);
+
   const enterLoading = (index) => {
     setLoadings((prevLoadings) => {
       const newLoadings = [...prevLoadings];
