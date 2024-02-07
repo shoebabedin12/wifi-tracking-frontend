@@ -491,7 +491,7 @@ const Home = () => {
     };
 
     fetchData(); // Call the async function immediately
-  }, [loading, form, onFinishPayment]);
+  }, [loading, form]);
 
   return (
     <>
