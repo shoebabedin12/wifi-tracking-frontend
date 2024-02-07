@@ -32,21 +32,21 @@ const Login = () => {
       .post(`${api}/auth/login`, values)
       .then((response) => {
         console.log(response);
-        // if (response.status === 200) {
-        //   localStorage.setItem("user", JSON.stringify(response?.data.user));
-        //   messageApi.open({
-        //     type: "success",
-        //     content: response.data.message
-        //   });
-        //   navigate("/");
-        // }
+        if (response.status === 200) {
+          localStorage.setItem("user", JSON.stringify(response?.data.user));
+          messageApi.open({
+            type: "success",
+            content: response.data.message
+          });
+          navigate("/");
+        }
       })
       .catch((error) => {
+        messageApi.open({
+          type: "error",
+          content: error.response.data.message
+        });
         console.log(error);
-        // messageApi.open({
-        //   type: "error",
-        //   content: error.response.data.message
-        // });
       });
   };
 
