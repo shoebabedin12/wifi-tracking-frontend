@@ -21,6 +21,7 @@ import {
   message
 } from "antd";
 import axios from "axios";
+import fingerprint2 from "fingerprintjs2";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
 
@@ -492,6 +493,15 @@ const Home = () => {
 
     fetchData(); // Call the async function immediately
   }, [loading, form]);
+
+  useEffect(() => {
+    // Generate a fingerprint for the device
+    fingerprint2.get((components) => {
+      const values = components.map((component) => component.value);
+      const fingerprint = Fingerprint2.x64hash128(values.join(''), 31);
+      console.log('Device Fingerprint:', fingerprint);
+    });
+  }, []);
 
   return (
     <>
