@@ -14,6 +14,7 @@ import {
   Modal,
   Popconfirm,
   Row,
+  Select,
   Space,
   Table,
   Typography,
@@ -22,6 +23,47 @@ import {
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+
+const { Option } = Select;
+
+const EditableCell = ({
+  editing,
+  dataIndex,
+  title,
+  inputType,
+  record,
+  index,
+  children,
+  ...restProps
+}) => {
+  const inputNode =
+    inputType === "number" ? (
+      <InputNumber />
+    ) : dataIndex === "status" ? (
+      <Select>
+        <Option value="Connect">Connect</Option>
+        <Option value="Disconnect">Disconnect</Option>
+      </Select>
+    ) : (
+      <Input />
+    );
+
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[{ required: true, message: `Please Input ${title}!` }]}
+        >
+          {inputNode}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
+  );
+};
 
 const Home = () => {
   const api = process.env.REACT_APP_API_KEY;
@@ -38,44 +80,8 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-
   const onChange = (date, dateString) => {
     console.log(date, dateString);
-  };
-
-  const EditableCell = ({
-    editing,
-    dataIndex,
-    title,
-    inputType,
-    record,
-    index,
-    children,
-    ...restProps
-  }) => {
-    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
-    return (
-      <td {...restProps}>
-        {editing ? (
-          <Form.Item
-            name={dataIndex}
-            style={{
-              margin: 0
-            }}
-            rules={[
-              {
-                required: true,
-                message: `Please Input ${title}!`
-              }
-            ]}
-          >
-            {inputNode}
-          </Form.Item>
-        ) : (
-          children
-        )}
-      </td>
-    );
   };
 
   const start = () => {
@@ -384,11 +390,6 @@ const Home = () => {
 
   const columns2 = [
     {
-      title: "month",
-      dataIndex: "month",
-      ...getColumnSearchProps("month")
-    },
-    {
       title: "Payment Date",
       dataIndex: "paymentDate",
       ...getColumnSearchProps("paymentDate")
@@ -397,49 +398,6 @@ const Home = () => {
       title: "Payment Amount",
       dataIndex: "paymentAmount",
       ...getColumnSearchProps("paymentAmount")
-    },
-    {
-      title: "Due",
-      dataIndex: "due",
-      ...getColumnSearchProps("due")
-    },
-    {
-      title: "operation",
-      dataIndex: "operation",
-      ellipsis: true,
-      render: (_, record) => {
-        const editable = isEditing(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save(record.key)}
-              style={{
-                marginRight: 8
-              }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel}>
-              <a>Cancel</a>
-            </Popconfirm>
-          </span>
-        ) : (
-          <Space size="middle">
-            <Typography.Link
-              disabled={editingKey !== ""}
-              onClick={() => edit(record)}
-            >
-              Edit
-            </Typography.Link>
-            <Typography.Link
-              disabled={editingKey !== ""}
-              onClick={() => singleDelete(record)}
-            >
-              Delete
-            </Typography.Link>
-          </Space>
-        );
-      }
     }
   ];
 
@@ -482,32 +440,23 @@ const Home = () => {
       });
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(`${api}/user/all-client`);
-        // console.log(response.data.data);
-        setClient(response.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchData(); // Call the async function immediately
-  }, [loading, form]);
-
   const showModal = (record) => {
     setSelectedUser(record);
     setIsModalOpen(true);
+    console.log(record);
   };
   const handleOk = () => {
     setIsModalOpen(false);
+
+    form.resetFields();
   };
   const handleCancel = () => {
     setIsModalOpen(false);
+
+    form.resetFields();
   };
 
-  const onFinish2 = async (values) => {
+  const onFinishPayment = async (values) => {
     console.log("Received values of form:", values);
     await axios
       .post(`${api}/user/add-client-payment-history`, values)
@@ -530,93 +479,23 @@ const Home = () => {
       });
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`${api}/user/all-client`);
+        // console.log(response.data.data);
+        setClient(response.data.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchData(); // Call the async function immediately
+  }, [loading, form, onFinishPayment]);
+
   return (
     <>
       {contextHolder}
-      <Modal
-        visible={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        width={"100%"}
-      >
-        <Form name="dynamic_form_nest_item" onFinish={onFinish2} form={form}>
-          {selectedUser && (
-            <>
-              <Descriptions title="User Info">
-                {Object.entries(selectedUser).map(([key, value]) => (
-                  <Descriptions.Item key={key} label={key}>
-                    {value}
-                  </Descriptions.Item>
-                ))}
-              </Descriptions>
-              <Button
-                type="primary"
-                onClick={start}
-                loading={loading}
-                style={{ marginBottom: "1rem" }}
-              >
-                Reload
-              </Button>
-              <Table
-                dataSource={[selectedUser]}
-                columns={mergedColumns2}
-                pagination={{ onChange: cancel }}
-                scroll={{ y: 500 }}
-              />
-            </>
-          )}
-          <Form.List name="paymentDetails">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Space
-                    key={key}
-                    style={{ display: "flex", marginBottom: 8 }}
-                    align="baseline"
-                  >
-                    <Form.Item
-                      {...restField}
-                      name={[name, "paymentDate"]}
-                      fieldKey={[name, "paymentDate"]}
-                      rules={[
-                        { required: true, message: "Missing payment Date" }
-                      ]}
-                    >
-                      <DatePicker onChange={onChange} needConfirm />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, "paymentAmount"]}
-                      fieldKey={[name, "paymentAmount"]}
-                      rules={[
-                        { required: true, message: "Missing payment Amount" }
-                      ]}
-                    >
-                      <InputNumber placeholder="Payment Amount" />
-                    </Form.Item>
-                    <MinusCircleOutlined onClick={() => remove(name)} />
-                  </Space>
-                ))}
-                <Form.Item>
-                  <Button
-                    type="dashed"
-                    onClick={() => add()}
-                    block
-                    icon={<PlusOutlined />}
-                  >
-                    Add Payment Detail
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
 
       <Row>
         <Col span={24}>
@@ -668,7 +547,7 @@ const Home = () => {
                       key={key}
                       style={{
                         display: "flex",
-                        marginBottom: 8
+                        marginTop: 10
                       }}
                       align="baseline"
                     >
@@ -709,7 +588,13 @@ const Home = () => {
                           }
                         ]}
                       >
-                        <InputNumber placeholder="device " />
+                        <Select placeholder="Select a device">
+                          {[...Array(10).keys()].map((index) => (
+                            <Option key={index + 1} value={index + 1}>
+                              {index + 1}
+                            </Option>
+                          ))}
+                        </Select>
                       </Form.Item>
                       <Form.Item
                         {...restField}
@@ -722,13 +607,34 @@ const Home = () => {
                           }
                         ]}
                       >
-                        <Input placeholder="Room No" />
+                        <Select placeholder="Room No">
+                          {["A", "B"].map((prefix) => (
+                            <React.Fragment key={prefix}>
+                              <Option
+                                value={`${prefix}-1`}
+                              >{`${prefix}-1`}</Option>
+                              {[...Array(prefix === "A" ? 3 : 4).keys()].map(
+                                (index) => (
+                                  <Option
+                                    key={`${prefix}-${index + 2}`}
+                                    value={`${prefix}-${index + 2}`}
+                                  >
+                                    {`${prefix}-${index + 2}`}
+                                  </Option>
+                                )
+                              )}
+                            </React.Fragment>
+                          ))}
+                        </Select>
                       </Form.Item>
                       <MinusCircleOutlined onClick={() => remove(name)} />
                     </Space>
                   ))}
                   <Form.Item>
                     <Button
+                      style={{
+                        marginTop: 10
+                      }}
                       type="dashed"
                       onClick={() => add()}
                       block
@@ -749,6 +655,105 @@ const Home = () => {
           </Form>
         </Col>
       </Row>
+
+      <Modal
+        visible={isModalOpen}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        width={"80%"}
+      >
+        <Form name="payment_form" onFinish={onFinishPayment} form={form}>
+          {selectedUser && (
+            <>
+              <Descriptions title="User Info">
+                {Object.entries(selectedUser)
+                  .filter(([key]) => key !== "paymentDetails") // Exclude payment details
+                  .map(([key, value]) => (
+                    <Descriptions.Item key={key} label={key}>
+                      {value}
+                    </Descriptions.Item>
+                  ))}
+              </Descriptions>
+              <Button
+                type="primary"
+                onClick={start}
+                loading={loading}
+                style={{ marginBottom: "1rem" }}
+              >
+                Reload
+              </Button>
+              <Table
+                dataSource={selectedUser?.paymentDetails} // Corrected dataSource
+                columns={mergedColumns2}
+                pagination={{ onChange: cancel }}
+                scroll={{ y: 500 }}
+              />
+            </>
+          )}
+          <Form.List name="paymentDetails">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Space
+                    key={key}
+                    style={{ display: "flex", marginBottom: 8 }}
+                    align="baseline"
+                  >
+                    <Form.Item
+                      {...restField}
+                      name={[name, "clientId"]}
+                      fieldKey={[name, "clientId"]}
+                      initialValue={selectedUser.key}
+                    >
+                      <Input disabled />
+                    </Form.Item>
+
+                    <Form.Item
+                      {...restField}
+                      name={[name, "paymentAmount"]}
+                      fieldKey={[name, "paymentAmount"]}
+                      initialValue={
+                        selectedUser.device === "1"
+                          ? "100"
+                          : `${100 + (parseInt(selectedUser.device) - 1) * 100}`
+                      }
+                    >
+                      <InputNumber disabled />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "paymentDate"]}
+                      fieldKey={[name, "paymentDate"]}
+                      rules={[
+                        { required: true, message: "Missing payment Date" }
+                      ]}
+                    >
+                      <DatePicker onChange={onChange} needConfirm />
+                    </Form.Item>
+
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Space>
+                ))}
+                <Form.Item>
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    block
+                    icon={<PlusOutlined />}
+                  >
+                    Add Payment Detail
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
+      </Modal>
     </>
   );
 };

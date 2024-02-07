@@ -8,11 +8,9 @@ import Home from "./views/Home";
 import Login from "./views/Login";
 import NotFound from "./views/NotFound";
 import Signup from "./views/Signup";
-import SingleClient from "./views/SingleClient";
 
 function App() {
   const navigate = useNavigate();
-  
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -24,12 +22,10 @@ function App() {
   }, []);
   return (
     <>
-    
       <Routes>
         <Route path="/" element={<CustomLayouts />}>
           <Route index element={<Home />} />
           <Route path="client-list" element={<ClientList />} />
-          <Route path="single-client-view/:id" element={<SingleClient />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         <Route path="/login" element={<Login />} />

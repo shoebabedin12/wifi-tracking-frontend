@@ -1,4 +1,4 @@
-import { HomeOutlined, UserOutlined } from "@ant-design/icons";
+import { HomeOutlined } from "@ant-design/icons";
 import { Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import React, { useEffect, useState } from "react";
@@ -10,12 +10,6 @@ const items = [
     icon: <HomeOutlined />,
     label: "Home",
     path: "/"
-  },
-  {
-    key: 1,
-    icon: <UserOutlined />,
-    label: "Profile",
-    path: "/profile"
   }
 ];
 const SideNav = () => {
