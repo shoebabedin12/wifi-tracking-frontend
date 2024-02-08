@@ -21,7 +21,7 @@ import {
   message
 } from "antd";
 import axios from "axios";
-import fingerprint2 from "fingerprintjs2";
+import moment from "moment";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
 
@@ -66,6 +66,59 @@ const EditableCell = ({
   );
 };
 
+const EditableCellPaymentStatus = ({
+  editing,
+  dataIndex,
+  title,
+  record,
+  inputType,
+  children,
+  ...restProps
+}) => {
+  let inputNode;
+
+  // Check if dataIndex is "paymentDate" and record.paymentDate is a valid date
+  if (dataIndex === "paymentDate" && moment(record.paymentDate, moment.ISO_8601, true).isValid()) {
+    inputNode = (
+      <DatePicker style={{ width: "100%" }} />
+    );
+}
+
+ else if (dataIndex === "paymentAmount") {
+    inputNode = <Input disabled />;
+  } else if (dataIndex === "paymentStatus") {
+    inputNode = (
+      <Select>
+        <Option value="paid">Paid</Option>
+        <Option value="pending">Pending</Option>
+      </Select>
+    );
+  } else {
+    inputNode = <Input />;
+  }
+
+  return (
+    <td {...restProps}>
+      {editing ? (
+        <Form.Item
+          name={dataIndex}
+          style={{ margin: 0 }}
+          rules={[{ required: true, message: `Please Select ${title}!` }]}
+        >
+          {inputNode}
+        </Form.Item>
+      ) : (
+        children
+      )}
+    </td>
+  );
+};
+
+const getCurrentMonthYear = () => {
+  const currentDate = new Date();
+  return { month: currentDate.getMonth() + 1, year: currentDate.getFullYear() };
+};
+
 const Home = () => {
   const api = process.env.REACT_APP_API_KEY;
   const [form] = Form.useForm();
@@ -78,8 +131,21 @@ const Home = () => {
   const searchInput = useRef(null);
   const [editingKey, setEditingKey] = useState("");
   const isEditing = (record) => record.key === editingKey;
+  const [editingKeyModal, setEditingKeyModal] = useState("");
+  const isEditing2 = (record) => record.paymentDate === editingKeyModal;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [paidClientsCount, setPaidClientsCount] = useState(0);
+  const [pendingClientsCount, setPendingClientsCount] = useState(0);
+  const [paymentPendingData, setPaymentPendingData] = useState([]);
+  const [paymentNeededData, setPaymentNeededData] = useState([]);
+  const [selectedUserPaymentDetails, setSelectedUserPaymentDetails] = useState(
+    []
+  );
+  const [lastFetchedMonthYear, setLastFetchedMonthYear] = useState({
+    month: 0,
+    year: 0
+  });
 
   const onChange = (date, dateString) => {
     console.log(date, dateString);
@@ -389,35 +455,6 @@ const Home = () => {
     };
   });
 
-  const columns2 = [
-    {
-      title: "Payment Date",
-      dataIndex: "paymentDate",
-      ...getColumnSearchProps("paymentDate")
-    },
-    {
-      title: "Payment Amount",
-      dataIndex: "paymentAmount",
-      ...getColumnSearchProps("paymentAmount")
-    }
-  ];
-
-  const mergedColumns2 = columns2.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-    return {
-      ...col,
-      onCell: (record) => ({
-        record,
-        inputType: col.dataIndex && "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing(record)
-      })
-    };
-  });
-
   const onFinish = async (values) => {
     console.log("Received values of form:", values);
     await axios
@@ -444,7 +481,6 @@ const Home = () => {
   const showModal = (record) => {
     setSelectedUser(record);
     setIsModalOpen(true);
-    console.log(record);
   };
   const handleOk = () => {
     setIsModalOpen(false);
@@ -480,12 +516,309 @@ const Home = () => {
       });
   };
 
+  // modal payment table
+
+  const edit2 = (record) => {
+    form.setFieldsValue({
+      paymentDate: record.paymentDate,
+      paymentAmount: record.paymentAmount,
+      paymentStatus: record.paymentStatus
+    });
+    setEditingKeyModal(record.paymentDate);
+  };
+
+  const singleDelete2 = async (record) => {
+    try {
+      console.log(record);
+      const deleteClientId = record.paymentDate; // Assuming the key represents the client ID
+      console.log(deleteClientId);
+
+      // Make the DELETE request with the client ID in the request body
+      // await axios
+      //   .delete(`${api}/user/delete-client`, { data: { id: deleteClientId } })
+      //   .then((res) => {
+      //     messageApi.open({
+      //       type: "warning",
+      //       content: res?.data.message
+      //     });
+      //   })
+      //   .catch((err) => {
+      //     console.log(err);
+      //   });
+
+      // If the deletion is successful, update the client state
+      const updatedClient = client.filter(
+        (item) => item.key !== record.paymentDate
+      );
+      setClient(updatedClient);
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      // Handle errors if necessary
+    }
+  };
+
+  const cancel2 = () => {
+    setEditingKeyModal("");
+  };
+
+  const save2 = async (key) => {
+    try {
+      const row = await form.validateFields();
+      const index = client.findIndex((item) => key === item.key);
+
+      if (index > -1) {
+        const updatedClient = {
+          ...client[index],
+          ...row,
+          key
+        };
+
+        const response = await axios.put(
+          `${api}/user/update-client`,
+          updatedClient
+        );
+
+        if (response.status === 200) {
+          const newData = [...client];
+          newData[index] = updatedClient;
+          setClient(newData);
+          setEditingKey("");
+
+          message.success("Client data updated successfully");
+        } else {
+          // Handle error if the update was not successful
+          message.error("Failed to update client data");
+        }
+      } else {
+        // Handle case if the item to update is not found
+        message.error("Item not found");
+      }
+    } catch (errInfo) {
+      console.log("Validate Failed:", errInfo);
+    }
+  };
+
+  const columns2 = [
+    {
+      title: "paymentDate",
+      dataIndex: "paymentDate",
+      editable: true,
+      ellipsis: true
+    },
+    {
+      title: "paymentAmount",
+      dataIndex: "paymentAmount",
+      editable: true,
+      ellipsis: true
+    },
+    {
+      title: "paymentStatus",
+      dataIndex: "paymentStatus",
+      editable: true,
+      ellipsis: true,
+      ...getColumnSearchProps("device")
+    },
+    {
+      title: "operation",
+      dataIndex: "operation",
+      ellipsis: true,
+      render: (_, record) => {
+        const editable = isEditing2(record);
+        return editable ? (
+          <span>
+            <Typography.Link
+              onClick={() => save2(record.key)}
+              style={{
+                marginRight: 8
+              }}
+            >
+              Save
+            </Typography.Link>
+            <Popconfirm title="Sure to cancel?" onConfirm={cancel2}>
+              <a>Cancel</a>
+            </Popconfirm>
+          </span>
+        ) : (
+          <Space size="middle">
+            <Typography.Link
+              disabled={editingKeyModal !== ""}
+              onClick={() => edit2(record)}
+            >
+              Edit
+            </Typography.Link>
+            <Typography.Link
+              disabled={editingKeyModal !== ""}
+              onClick={() => singleDelete2(record)}
+            >
+              Delete
+            </Typography.Link>
+          </Space>
+        );
+      }
+    }
+  ];
+
+  const mergedColumns2 = columns2.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+
+    return {
+      ...col,
+      onCell: (record) => ({
+        record,
+        inputType: col.dataIndex === "paymentStatus" ? "select" : "text",
+        dataIndex: col.dataIndex,
+        title: col.title,
+        editing: isEditing2(record)
+      }),
+      render: (text, record, index) => {
+        const isEditingPaymentStatus =
+          isEditing2(record) && col.dataIndex === "paymentStatus";
+        if (isEditingPaymentStatus) {
+          return (
+            <EditableCellPaymentStatus
+              editing={isEditingPaymentStatus}
+              dataIndex={col.dataIndex}
+              title={col.title}
+              inputType={col.inputType}
+              record={record}
+              index={index}
+            />
+          );
+        } else {
+          return text;
+        }
+      }
+    };
+  });
+
+  // modal payment table
+
+  const calculatePaymentCounts = (clients) => {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth(); // Month is zero-based
+
+    // Filter clients based on payment details for the current month
+    const paidClients = clients.filter((client) => {
+      return client.paymentDetails.some((payment) => {
+        const paymentDate = new Date(payment.paymentDate);
+        return (
+          paymentDate.getMonth() === currentMonth &&
+          payment.paymentStatus === "paid"
+        );
+      });
+    });
+
+    const pendingClients = clients.filter((client) => {
+      return !client.paymentDetails.some((payment) => {
+        const paymentDate = new Date(payment.paymentDate);
+        return (
+          paymentDate.getMonth() === currentMonth &&
+          payment.paymentStatus === "paid"
+        );
+      });
+    });
+
+    // Update state with the counts
+    setPaidClientsCount(paidClients.length);
+    setPendingClientsCount(pendingClients.length);
+  };
+
+  useEffect(() => {
+    const fetchPendingPayments = async () => {
+      try {
+        const response = await axios.get(
+          `${api}/user/all-client-payments-status`
+        );
+        // console.log("Pending payments response:", response.data);
+
+        // Check if response.data is defined and contains pendingPayments
+        // console.log("Response data:", response.data);
+        if (!response.data || !Array.isArray(response.data.pendingPayments)) {
+          // console.error("Invalid response format:", response.data);
+          return;
+        }
+
+        const currentMonthYear = getCurrentMonthYear();
+
+        // console.log("Pending payments:", response.data.pendingPayments);
+        if (response.data.pendingPayments.length === 0) {
+          // If pending user array is empty, call the update-payment-details API
+          // console.log(
+          //   "Pending users array is empty. Calling update-payment-details API..."
+          // );
+          await axios
+            .post(`${api}/user/update-payment-details`)
+            .then((res) => console.log(res));
+        } else {
+          // Process pending payments
+          await processPendingPayments(
+            response.data.pendingPayments,
+            currentMonthYear
+          );
+        }
+
+        // Update last fetched month and year
+        setLastFetchedMonthYear(currentMonthYear);
+        // console.log("Last fetched month and year updated.");
+      } catch (error) {
+        console.error("Error fetching or processing pending payments:", error);
+      }
+    };
+
+    // Check if last fetched month and year differ from current month and year
+    if (
+      lastFetchedMonthYear.month !== getCurrentMonthYear().month ||
+      lastFetchedMonthYear.year !== getCurrentMonthYear().year
+    ) {
+      fetchPendingPayments();
+    }
+  }, [lastFetchedMonthYear, api]);
+
+  const processPendingPayments = async (users, currentMonthYear) => {
+    try {
+      for (const user of users) {
+        // console.log("Processing user:", user);
+        const paymentResponse = await axios.post(
+          `${api}/user/client-payment-details`,
+          {
+            clientId: user.id,
+            month: currentMonthYear.month,
+            year: currentMonthYear.year
+          }
+        );
+
+        // console.log("Payment details response:", paymentResponse.data);
+
+        if (paymentResponse.data.paymentDetails.length === 0) {
+          // console.log("Adding payment details for user:", user);
+          const paymentDate = new Date();
+          const paymentAmount = 100;
+          let paymentStatus = user.hasPaid ? "paid" : "pending";
+
+          await axios.post(`${api}/user/add-client-payment-history`, {
+            clientId: user.id,
+            paymentDate,
+            paymentAmount,
+            paymentStatus
+          });
+
+          console.log("Payment details added successfully.");
+        }
+      }
+    } catch (error) {
+      console.error("Error processing pending payments:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const response = await axios.get(`${api}/user/all-client`);
         // console.log(response.data.data);
         setClient(response.data.data);
+        calculatePaymentCounts(response.data.data);
       } catch (error) {
         console.log(error);
       }
@@ -494,20 +827,21 @@ const Home = () => {
     fetchData(); // Call the async function immediately
   }, [loading, form]);
 
-  useEffect(() => {
-    // Generate a fingerprint for the device
-    fingerprint2.get((components) => {
-      const values = components.map((component) => component.value);
-      const fingerprint = Fingerprint2.x64hash128(values.join(''), 31);
-      console.log('Device Fingerprint:', fingerprint);
-    });
-  }, []);
-
   return (
     <>
       {contextHolder}
 
       <Row>
+        <Col span={8}>
+          <p>Total Client: {client?.length}</p>
+        </Col>
+        <Col span={8}>
+          <p>Paid In this month: {paidClientsCount}</p>
+        </Col>
+        <Col span={8}>
+          <p>Pending In this month: {pendingClientsCount}</p>
+        </Col>
+
         <Col span={24}>
           <Form name="dynamic_form_nest_item" onFinish={onFinish} form={form}>
             <div
@@ -672,97 +1006,37 @@ const Home = () => {
         onCancel={handleCancel}
         width={"80%"}
       >
-        <Form name="payment_form" onFinish={onFinishPayment} form={form}>
-          {selectedUser && (
-            <>
-              <Descriptions title="User Info">
-                {Object.entries(selectedUser)
-                  .filter(([key]) => key !== "paymentDetails") // Exclude payment details
-                  .map(([key, value]) => (
-                    <Descriptions.Item key={key} label={key}>
-                      {value}
-                    </Descriptions.Item>
-                  ))}
-              </Descriptions>
-              <Button
-                type="primary"
-                onClick={start}
-                loading={loading}
-                style={{ marginBottom: "1rem" }}
-              >
-                Reload
-              </Button>
+        {selectedUser && (
+          <>
+            <Descriptions title="User Info">
+              {Object.entries(selectedUser)
+                .filter(([key]) => key !== "paymentDetails")
+                .map(([key, value]) => (
+                  <Descriptions.Item key={key} label={key}>
+                    {value}
+                  </Descriptions.Item>
+                ))}
+            </Descriptions>
+            <Form form={form} component={false}>
               <Table
-                dataSource={selectedUser?.paymentDetails} // Corrected dataSource
+                components={{
+                  body: {
+                    cell: EditableCellPaymentStatus
+                  }
+                }}
+                bordered
+                dataSource={selectedUser?.paymentDetails}
                 columns={mergedColumns2}
                 pagination={{ onChange: cancel }}
                 scroll={{ y: 500 }}
+                // Add rowClassName to conditionally apply editing styles
+                rowClassName={(record) =>
+                  isEditing(record) ? "editing-row" : ""
+                }
               />
-            </>
-          )}
-          <Form.List name="paymentDetails">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Space
-                    key={key}
-                    style={{ display: "flex", marginBottom: 8 }}
-                    align="baseline"
-                  >
-                    <Form.Item
-                      {...restField}
-                      name={[name, "clientId"]}
-                      fieldKey={[name, "clientId"]}
-                      initialValue={selectedUser.key}
-                    >
-                      <Input disabled />
-                    </Form.Item>
-
-                    <Form.Item
-                      {...restField}
-                      name={[name, "paymentAmount"]}
-                      fieldKey={[name, "paymentAmount"]}
-                      initialValue={
-                        selectedUser.device === "1"
-                          ? "100"
-                          : `${100 + (parseInt(selectedUser.device) - 1) * 100}`
-                      }
-                    >
-                      <InputNumber disabled />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, "paymentDate"]}
-                      fieldKey={[name, "paymentDate"]}
-                      rules={[
-                        { required: true, message: "Missing payment Date" }
-                      ]}
-                    >
-                      <DatePicker onChange={onChange} needConfirm />
-                    </Form.Item>
-
-                    <MinusCircleOutlined onClick={() => remove(name)} />
-                  </Space>
-                ))}
-                <Form.Item>
-                  <Button
-                    type="dashed"
-                    onClick={() => add()}
-                    block
-                    icon={<PlusOutlined />}
-                  >
-                    Add Payment Detail
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
+            </Form>
+          </>
+        )}
       </Modal>
     </>
   );
