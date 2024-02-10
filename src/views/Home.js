@@ -1,7 +1,7 @@
 import {
   MinusCircleOutlined,
   PlusOutlined,
-  SearchOutlined
+  SearchOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -18,12 +18,13 @@ import {
   Space,
   Table,
   Typography,
-  message
+  message,
 } from "antd";
 import axios from "axios";
 import moment from "moment";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
+import { Link } from "react-router-dom";
 
 const { Option } = Select;
 
@@ -66,10 +67,57 @@ const EditableCell = ({
   );
 };
 
+// const EditableCellPaymentStatus = ({
+//   editing,
+//   dataIndex,
+//   title,
+//   record,
+//   inputType,
+//   children,
+//   ...restProps
+// }) => {
+//   let inputNode;
+
+//   if (dataIndex === "paymentDate") {
+//     inputNode = (
+//       <DatePicker style={{ width: "100%" }} />
+//     );
+// }
+
+//  else if (dataIndex === "paymentAmount") {
+//     inputNode = <Input />;
+//   } else if (dataIndex === "paymentStatus") {
+//     inputNode = (
+//       <Select>
+//         <Option value="paid">Paid</Option>
+//         <Option value="pending">Pending</Option>
+//       </Select>
+//     );
+//   } else {
+//     inputNode = <Input />;
+//   }
+
+//   return (
+//     <td {...restProps}>
+//       {editing ? (
+//         <Form.Item
+//           name={dataIndex}
+//           style={{ margin: 0 }}
+//           rules={[{ required: true, message: `Please Select ${title}!` }]}
+//         >
+//           {inputNode}
+//         </Form.Item>
+//       ) : (
+//         children
+//       )}
+//     </td>
+//   );
+// };
+
 const EditableCellPaymentStatus = ({
   editing,
-  dataIndex,
-  title,
+  dataIndex, // dataIndex is defined here
+  title, // title is defined here
   record,
   inputType,
   children,
@@ -77,15 +125,10 @@ const EditableCellPaymentStatus = ({
 }) => {
   let inputNode;
 
-  // Check if dataIndex is "paymentDate" and record.paymentDate is a valid date
-  if (dataIndex === "paymentDate" && moment(record.paymentDate, moment.ISO_8601, true).isValid()) {
-    inputNode = (
-      <DatePicker style={{ width: "100%" }} />
-    );
-}
-
- else if (dataIndex === "paymentAmount") {
-    inputNode = <Input disabled />;
+  if (dataIndex === "paymentDate") {
+    inputNode = <DatePicker style={{ width: "100%" }} />;
+  } else if (dataIndex === "paymentAmount") {
+    inputNode = <Input />;
   } else if (dataIndex === "paymentStatus") {
     inputNode = (
       <Select>
@@ -144,7 +187,7 @@ const Home = () => {
   );
   const [lastFetchedMonthYear, setLastFetchedMonthYear] = useState({
     month: 0,
-    year: 0
+    year: 0,
   });
 
   const onChange = (date, dateString) => {
@@ -163,7 +206,7 @@ const Home = () => {
   };
   const rowSelection = {
     selectedRowKeys,
-    onChange: onSelectChange
+    onChange: onSelectChange,
   };
   const hasSelected = selectedRowKeys.length > 0;
 
@@ -182,11 +225,11 @@ const Home = () => {
       selectedKeys,
       confirm,
       clearFilters,
-      close
+      close,
     }) => (
       <div
         style={{
-          padding: 8
+          padding: 8,
         }}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -200,7 +243,7 @@ const Home = () => {
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: "block"
+            display: "block",
           }}
         />
         <Space>
@@ -210,7 +253,7 @@ const Home = () => {
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90
+              width: 90,
             }}
           >
             Search
@@ -219,7 +262,7 @@ const Home = () => {
             onClick={() => clearFilters && handleReset(clearFilters)}
             size="small"
             style={{
-              width: 90
+              width: 90,
             }}
           >
             Reset
@@ -229,7 +272,7 @@ const Home = () => {
             size="small"
             onClick={() => {
               confirm({
-                closeDropdown: false
+                closeDropdown: false,
               });
               setSearchText(selectedKeys[0]);
               setSearchedColumn(dataIndex);
@@ -252,7 +295,7 @@ const Home = () => {
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? "#1677ff" : undefined
+          color: filtered ? "#1677ff" : undefined,
         }}
       />
     ),
@@ -268,7 +311,7 @@ const Home = () => {
         <Highlighter
           highlightStyle={{
             backgroundColor: "#ffc069",
-            padding: 0
+            padding: 0,
           }}
           searchWords={[searchText]}
           autoEscape
@@ -276,7 +319,7 @@ const Home = () => {
         />
       ) : (
         text
-      )
+      ),
   });
 
   const edit = (record) => {
@@ -285,7 +328,7 @@ const Home = () => {
       macAddress: record.macAddress,
       device: record.device,
       roomNo: record.roomNo, // corrected key name
-      status: record.status
+      status: record.status,
     });
     setEditingKey(record.key);
   };
@@ -302,7 +345,7 @@ const Home = () => {
         .then((res) => {
           messageApi.open({
             type: "warning",
-            content: res?.data.message
+            content: res?.data.message,
           });
         })
         .catch((err) => {
@@ -331,7 +374,7 @@ const Home = () => {
         const updatedClient = {
           ...client[index],
           ...row,
-          key
+          key,
         };
 
         const response = await axios.put(
@@ -366,35 +409,35 @@ const Home = () => {
       dataIndex: "name",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("name")
+      ...getColumnSearchProps("name"),
     },
     {
       title: "MAC address",
       dataIndex: "macAddress",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("macAddress")
+      ...getColumnSearchProps("macAddress"),
     },
     {
       title: "Device",
       dataIndex: "device",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("device")
+      ...getColumnSearchProps("device"),
     },
     {
       title: "Room NO",
       dataIndex: "roomNo",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("roomNo")
+      ...getColumnSearchProps("roomNo"),
     },
     {
       title: "Status",
       dataIndex: "status",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("status")
+      ...getColumnSearchProps("status"),
     },
     {
       title: "operation",
@@ -407,7 +450,7 @@ const Home = () => {
             <Typography.Link
               onClick={() => save(record.key)}
               style={{
-                marginRight: 8
+                marginRight: 8,
               }}
             >
               Save
@@ -435,8 +478,8 @@ const Home = () => {
             </Typography.Link>
           </Space>
         );
-      }
-    }
+      },
+    },
   ];
 
   const mergedColumns = columns.map((col) => {
@@ -450,8 +493,8 @@ const Home = () => {
         inputType: col.dataIndex && "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record)
-      })
+        editing: isEditing(record),
+      }),
     };
   });
 
@@ -464,7 +507,7 @@ const Home = () => {
         if (response?.status === 200) {
           messageApi.open({
             type: "success",
-            content: response?.data.message
+            content: response?.data.message,
           });
           form.resetFields();
         }
@@ -472,7 +515,7 @@ const Home = () => {
       .catch((error) => {
         messageApi.open({
           type: "error",
-          content: error.response.data.message
+          content: error.response.data.message,
         });
         console.log(error);
       });
@@ -502,7 +545,7 @@ const Home = () => {
         if (response?.status === 200) {
           messageApi.open({
             type: "success",
-            content: response?.data.message
+            content: response?.data.message,
           });
           form.resetFields();
         }
@@ -510,7 +553,7 @@ const Home = () => {
       .catch((error) => {
         messageApi.open({
           type: "error",
-          content: error.response.data.message
+          content: error.response.data.message,
         });
         console.log(error);
       });
@@ -522,7 +565,7 @@ const Home = () => {
     form.setFieldsValue({
       paymentDate: record.paymentDate,
       paymentAmount: record.paymentAmount,
-      paymentStatus: record.paymentStatus
+      paymentStatus: record.paymentStatus,
     });
     setEditingKeyModal(record.paymentDate);
   };
@@ -561,81 +604,138 @@ const Home = () => {
     setEditingKeyModal("");
   };
 
-  const save2 = async (key) => {
+
+  const save2 = async (record, paymentDetailIndex) => {
     try {
       const row = await form.validateFields();
-      const index = client.findIndex((item) => key === item.key);
+      // console.log("Selected User Before Update:", selectedUser);
 
-      if (index > -1) {
-        const updatedClient = {
-          ...client[index],
-          ...row,
-          key
-        };
-
-        const response = await axios.put(
-          `${api}/user/update-client`,
-          updatedClient
-        );
-
-        if (response.status === 200) {
-          const newData = [...client];
-          newData[index] = updatedClient;
-          setClient(newData);
-          setEditingKey("");
-
-          message.success("Client data updated successfully");
-        } else {
-          // Handle error if the update was not successful
-          message.error("Failed to update client data");
+      const updatedPaymentDetails = selectedUser.paymentDetails.map(
+        (payment, index) => {
+          if (index === paymentDetailIndex) {
+            // Update only the payment status for the selected payment detail
+            return {
+              ...payment,
+              paymentStatus: row.paymentStatus,
+            };
+          }
+          return payment;
         }
+      );
+      // console.log(updatedPaymentDetails);
+
+      // Update selected user's payment details with the updated payment status
+      const updatedUser = {
+        ...selectedUser,
+        paymentDetails: updatedPaymentDetails,
+      };
+      // console.log("Updated User:", updatedUser);
+
+      // Update the client array with the updated user
+      const updatedClients = client.map((clientItem) =>
+        clientItem.key === updatedUser.key ? updatedUser : clientItem
+      );
+      // console.log("Updated Clients:", updatedClients);
+
+      const response = await axios
+        .post(`${api}/user/update-single-client-details`, {
+          key: updatedUser.key,
+          paymentDetailIndex: paymentDetailIndex,
+          updatedPaymentDetail: updatedPaymentDetails[paymentDetailIndex],
+        })
+        .then((response) => {
+          console.log(response);
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+
+      if (response.status === 200) {
+        setEditingKey("");
+        message.success("Client data updated successfully");
       } else {
-        // Handle case if the item to update is not found
-        message.error("Item not found");
+        message.error("Failed to update client data");
       }
+
+      // Update the client state with the updated array
+      setClient(updatedClients);
+
+      // Reset editing key modal
+      setEditingKeyModal("");
+
+      // message.success("Payment status updated successfully");
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
+  };
+
+  const determinePaymentDetailsIndex = (selectedUser, record) => {
+    // Iterate through the paymentDetails array of the selectedUser
+    for (let i = 0; i < selectedUser.paymentDetails.length; i++) {
+      // Check if the paymentDate matches the record's paymentDate
+      if (selectedUser.paymentDetails[i].paymentDate === record.paymentDate) {
+        // If found, return the index
+        return i;
+      }
+    }
+    // If not found, return -1 or handle accordingly based on your requirements
+    return -1;
   };
 
   const columns2 = [
     {
       title: "paymentDate",
       dataIndex: "paymentDate",
-      editable: true,
-      ellipsis: true
+      ellipsis: true,
     },
     {
       title: "paymentAmount",
       dataIndex: "paymentAmount",
-      editable: true,
-      ellipsis: true
+      ellipsis: true,
     },
     {
       title: "paymentStatus",
       dataIndex: "paymentStatus",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("device")
+      ...getColumnSearchProps("paymentStatus"),
+      render: (text, record, index) => {
+        const isEditingPaymentStatus =
+          isEditing2(record) && record.dataIndex === "paymentStatus"; // use record.dataIndex
+        return isEditingPaymentStatus ? (
+          <EditableCellPaymentStatus
+            editing={isEditingPaymentStatus}
+            dataIndex={record.dataIndex} // use record.dataIndex
+            title={record.title} // use record.title
+            inputType="select"
+            record={record}
+            index={index}
+          />
+        ) : (
+          text
+        );
+      },
     },
     {
       title: "operation",
       dataIndex: "operation",
       ellipsis: true,
       render: (_, record) => {
+        const paymentDetailsIndex = determinePaymentDetailsIndex(
+          selectedUser,
+          record
+        );
         const editable = isEditing2(record);
         return editable ? (
           <span>
             <Typography.Link
-              onClick={() => save2(record.key)}
-              style={{
-                marginRight: 8
-              }}
+              onClick={() => save2(record, paymentDetailsIndex)}
+              style={{ marginRight: 8 }}
             >
               Save
             </Typography.Link>
             <Popconfirm title="Sure to cancel?" onConfirm={cancel2}>
-              <a>Cancel</a>
+              <Link>Cancel</Link>
             </Popconfirm>
           </span>
         ) : (
@@ -654,10 +754,10 @@ const Home = () => {
             </Typography.Link>
           </Space>
         );
-      }
-    }
+      },
+    },
   ];
-
+  
   const mergedColumns2 = columns2.map((col) => {
     if (!col.editable) {
       return col;
@@ -670,29 +770,10 @@ const Home = () => {
         inputType: col.dataIndex === "paymentStatus" ? "select" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing2(record)
+        editing: isEditing2(record),
       }),
-      render: (text, record, index) => {
-        const isEditingPaymentStatus =
-          isEditing2(record) && col.dataIndex === "paymentStatus";
-        if (isEditingPaymentStatus) {
-          return (
-            <EditableCellPaymentStatus
-              editing={isEditingPaymentStatus}
-              dataIndex={col.dataIndex}
-              title={col.title}
-              inputType={col.inputType}
-              record={record}
-              index={index}
-            />
-          );
-        } else {
-          return text;
-        }
-      }
     };
   });
-
   // modal payment table
 
   const calculatePaymentCounts = (clients) => {
@@ -743,21 +824,22 @@ const Home = () => {
         const currentMonthYear = getCurrentMonthYear();
 
         // console.log("Pending payments:", response.data.pendingPayments);
-        if (response.data.pendingPayments.length === 0) {
-          // If pending user array is empty, call the update-payment-details API
-          // console.log(
-          //   "Pending users array is empty. Calling update-payment-details API..."
-          // );
-          await axios
-            .post(`${api}/user/update-payment-details`)
-            .then((res) => console.log(res));
-        } else {
-          // Process pending payments
-          await processPendingPayments(
-            response.data.pendingPayments,
-            currentMonthYear
-          );
-        }
+        // if (response.data.pendingPayments.length === 0) {
+        //   // If pending user array is empty, call the update-payment-details API
+        //   // console.log(
+        //   //   "Pending users array is empty. Calling update-payment-details API..."
+        //   // );
+        //   console.log(client);
+        //   await axios
+        //     .post(`${api}/user/update-payment-details`)
+        //     .then((res) => console.log(res));
+        // } else {
+        //   // Process pending payments
+        //   await processPendingPayments(
+        //     response.data.pendingPayments,
+        //     currentMonthYear
+        //   );
+        // }
 
         // Update last fetched month and year
         setLastFetchedMonthYear(currentMonthYear);
@@ -774,7 +856,7 @@ const Home = () => {
     ) {
       fetchPendingPayments();
     }
-  }, [lastFetchedMonthYear, api]);
+  }, [lastFetchedMonthYear, api, loading]);
 
   const processPendingPayments = async (users, currentMonthYear) => {
     try {
@@ -785,7 +867,7 @@ const Home = () => {
           {
             clientId: user.id,
             month: currentMonthYear.month,
-            year: currentMonthYear.year
+            year: currentMonthYear.year,
           }
         );
 
@@ -801,7 +883,7 @@ const Home = () => {
             clientId: user.id,
             paymentDate,
             paymentAmount,
-            paymentStatus
+            paymentStatus,
           });
 
           console.log("Payment details added successfully.");
@@ -846,7 +928,7 @@ const Home = () => {
           <Form name="dynamic_form_nest_item" onFinish={onFinish} form={form}>
             <div
               style={{
-                marginBottom: 16
+                marginBottom: 16,
               }}
             >
               <Button
@@ -859,7 +941,7 @@ const Home = () => {
               </Button>
               <span
                 style={{
-                  marginLeft: 8
+                  marginLeft: 8,
                 }}
               >
                 {hasSelected ? `Selected ${selectedRowKeys.length} items` : ""}
@@ -868,8 +950,8 @@ const Home = () => {
             <Table
               components={{
                 body: {
-                  cell: EditableCell
-                }
+                  cell: EditableCell,
+                },
               }}
               bordered
               dataSource={client}
@@ -877,10 +959,10 @@ const Home = () => {
               // rowSelection={rowSelection}
               rowClassName="editable-row"
               pagination={{
-                onChange: cancel
+                onChange: cancel,
               }}
               scroll={{
-                y: 500
+                y: 500,
               }}
             />
             <Form.List name="users">
@@ -891,7 +973,7 @@ const Home = () => {
                       key={key}
                       style={{
                         display: "flex",
-                        marginTop: 10
+                        marginTop: 10,
                       }}
                       align="baseline"
                     >
@@ -902,8 +984,8 @@ const Home = () => {
                         rules={[
                           {
                             required: true,
-                            message: "Missing name"
-                          }
+                            message: "Missing name",
+                          },
                         ]}
                       >
                         <Input placeholder="Name" />
@@ -915,8 +997,8 @@ const Home = () => {
                         rules={[
                           {
                             required: true,
-                            message: "Missing last MAC Address"
-                          }
+                            message: "Missing last MAC Address",
+                          },
                         ]}
                       >
                         <Input placeholder="MAC Address" />
@@ -928,8 +1010,8 @@ const Home = () => {
                         rules={[
                           {
                             required: true,
-                            message: "Missing device"
-                          }
+                            message: "Missing device",
+                          },
                         ]}
                       >
                         <Select placeholder="Select a device">
@@ -947,8 +1029,8 @@ const Home = () => {
                         rules={[
                           {
                             required: true,
-                            message: "Missing roomNo"
-                          }
+                            message: "Missing roomNo",
+                          },
                         ]}
                       >
                         <Select placeholder="Room No">
@@ -977,7 +1059,7 @@ const Home = () => {
                   <Form.Item>
                     <Button
                       style={{
-                        marginTop: 10
+                        marginTop: 10,
                       }}
                       type="dashed"
                       onClick={() => add()}
@@ -1017,12 +1099,12 @@ const Home = () => {
                   </Descriptions.Item>
                 ))}
             </Descriptions>
-            <Form form={form} component={false}>
+            <Form form={form}>
               <Table
                 components={{
                   body: {
-                    cell: EditableCellPaymentStatus
-                  }
+                    cell: EditableCellPaymentStatus,
+                  },
                 }}
                 bordered
                 dataSource={selectedUser?.paymentDetails}
