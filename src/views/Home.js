@@ -1,7 +1,7 @@
 import {
   MinusCircleOutlined,
   PlusOutlined,
-  SearchOutlined,
+  SearchOutlined
 } from "@ant-design/icons";
 import {
   Button,
@@ -13,12 +13,13 @@ import {
   InputNumber,
   Modal,
   Popconfirm,
+  QRCode,
   Row,
   Select,
   Space,
   Table,
   Typography,
-  message,
+  message
 } from "antd";
 import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
@@ -65,53 +66,6 @@ const EditableCell = ({
     </td>
   );
 };
-
-// const EditableCellPaymentStatus = ({
-//   editing,
-//   dataIndex,
-//   title,
-//   record,
-//   inputType,
-//   children,
-//   ...restProps
-// }) => {
-//   let inputNode;
-
-//   if (dataIndex === "paymentDate") {
-//     inputNode = (
-//       <DatePicker style={{ width: "100%" }} />
-//     );
-// }
-
-//  else if (dataIndex === "paymentAmount") {
-//     inputNode = <Input />;
-//   } else if (dataIndex === "paymentStatus") {
-//     inputNode = (
-//       <Select>
-//         <Option value="paid">Paid</Option>
-//         <Option value="pending">Pending</Option>
-//       </Select>
-//     );
-//   } else {
-//     inputNode = <Input />;
-//   }
-
-//   return (
-//     <td {...restProps}>
-//       {editing ? (
-//         <Form.Item
-//           name={dataIndex}
-//           style={{ margin: 0 }}
-//           rules={[{ required: true, message: `Please Select ${title}!` }]}
-//         >
-//           {inputNode}
-//         </Form.Item>
-//       ) : (
-//         children
-//       )}
-//     </td>
-//   );
-// };
 
 const EditableCellPaymentStatus = ({
   editing,
@@ -186,9 +140,9 @@ const Home = () => {
   );
   const [lastFetchedMonthYear, setLastFetchedMonthYear] = useState({
     month: 0,
-    year: 0,
+    year: 0
   });
-console.log(client);
+  console.log(client);
   const onChange = (date, dateString) => {
     console.log(date, dateString);
   };
@@ -205,7 +159,7 @@ console.log(client);
   };
   const rowSelection = {
     selectedRowKeys,
-    onChange: onSelectChange,
+    onChange: onSelectChange
   };
   const hasSelected = selectedRowKeys.length > 0;
 
@@ -224,11 +178,11 @@ console.log(client);
       selectedKeys,
       confirm,
       clearFilters,
-      close,
+      close
     }) => (
       <div
         style={{
-          padding: 8,
+          padding: 8
         }}
         onKeyDown={(e) => e.stopPropagation()}
       >
@@ -242,7 +196,7 @@ console.log(client);
           onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
-            display: "block",
+            display: "block"
           }}
         />
         <Space>
@@ -252,7 +206,7 @@ console.log(client);
             icon={<SearchOutlined />}
             size="small"
             style={{
-              width: 90,
+              width: 90
             }}
           >
             Search
@@ -261,7 +215,7 @@ console.log(client);
             onClick={() => clearFilters && handleReset(clearFilters)}
             size="small"
             style={{
-              width: 90,
+              width: 90
             }}
           >
             Reset
@@ -271,7 +225,7 @@ console.log(client);
             size="small"
             onClick={() => {
               confirm({
-                closeDropdown: false,
+                closeDropdown: false
               });
               setSearchText(selectedKeys[0]);
               setSearchedColumn(dataIndex);
@@ -294,7 +248,7 @@ console.log(client);
     filterIcon: (filtered) => (
       <SearchOutlined
         style={{
-          color: filtered ? "#1677ff" : undefined,
+          color: filtered ? "#1677ff" : undefined
         }}
       />
     ),
@@ -310,7 +264,7 @@ console.log(client);
         <Highlighter
           highlightStyle={{
             backgroundColor: "#ffc069",
-            padding: 0,
+            padding: 0
           }}
           searchWords={[searchText]}
           autoEscape
@@ -318,7 +272,7 @@ console.log(client);
         />
       ) : (
         text
-      ),
+      )
   });
 
   const edit = (record) => {
@@ -327,7 +281,7 @@ console.log(client);
       macAddress: record.macAddress,
       device: record.device,
       roomNo: record.roomNo, // corrected key name
-      status: record.status,
+      status: record.status
     });
     setEditingKey(record.key);
   };
@@ -344,7 +298,7 @@ console.log(client);
         .then((res) => {
           messageApi.open({
             type: "warning",
-            content: res?.data.message,
+            content: res?.data.message
           });
         })
         .catch((err) => {
@@ -373,7 +327,7 @@ console.log(client);
         const updatedClient = {
           ...client[index],
           ...row,
-          key,
+          key
         };
 
         const response = await axios.put(
@@ -408,35 +362,35 @@ console.log(client);
       dataIndex: "name",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("name"),
+      ...getColumnSearchProps("name")
     },
     {
       title: "MAC address",
       dataIndex: "macAddress",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("macAddress"),
+      ...getColumnSearchProps("macAddress")
     },
     {
       title: "Device",
       dataIndex: "device",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("device"),
+      ...getColumnSearchProps("device")
     },
     {
       title: "Room NO",
       dataIndex: "roomNo",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("roomNo"),
+      ...getColumnSearchProps("roomNo")
     },
     {
       title: "Status",
       dataIndex: "status",
       editable: true,
       ellipsis: true,
-      ...getColumnSearchProps("status"),
+      ...getColumnSearchProps("status")
     },
     {
       title: "operation",
@@ -449,7 +403,7 @@ console.log(client);
             <Typography.Link
               onClick={() => save(record.key)}
               style={{
-                marginRight: 8,
+                marginRight: 8
               }}
             >
               Save
@@ -477,8 +431,8 @@ console.log(client);
             </Typography.Link>
           </Space>
         );
-      },
-    },
+      }
+    }
   ];
 
   const mergedColumns = columns.map((col) => {
@@ -492,8 +446,8 @@ console.log(client);
         inputType: col.dataIndex && "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing(record),
-      }),
+        editing: isEditing(record)
+      })
     };
   });
 
@@ -506,7 +460,7 @@ console.log(client);
         if (response?.status === 200) {
           messageApi.open({
             type: "success",
-            content: response?.data.message,
+            content: response?.data.message
           });
           form.resetFields();
         }
@@ -514,7 +468,7 @@ console.log(client);
       .catch((error) => {
         messageApi.open({
           type: "error",
-          content: error.response.data.message,
+          content: error.response.data.message
         });
         console.log(error);
       });
@@ -544,7 +498,7 @@ console.log(client);
         if (response?.status === 200) {
           messageApi.open({
             type: "success",
-            content: response?.data.message,
+            content: response?.data.message
           });
           form.resetFields();
         }
@@ -552,7 +506,7 @@ console.log(client);
       .catch((error) => {
         messageApi.open({
           type: "error",
-          content: error.response.data.message,
+          content: error.response.data.message
         });
         console.log(error);
       });
@@ -564,7 +518,7 @@ console.log(client);
     form.setFieldsValue({
       paymentDate: record.paymentDate,
       paymentAmount: record.paymentAmount,
-      paymentStatus: record.paymentStatus,
+      paymentStatus: record.paymentStatus
     });
     setEditingKeyModal(record.paymentDate);
   };
@@ -577,7 +531,9 @@ console.log(client);
 
       // Make the DELETE request with the client ID in the request body
       await axios
-        .delete(`${api}/user/delete-single-client-details`, { data: { id: deleteClientId } })
+        .delete(`${api}/user/delete-single-client-details`, {
+          data: { id: deleteClientId }
+        })
         .then((res) => {
           messageApi.open({
             type: "warning",
@@ -603,51 +559,50 @@ console.log(client);
     setEditingKeyModal("");
   };
 
-
   const save2 = async (record, paymentHistoryId) => {
-
     try {
       const row = await form.validateFields();
-  
+
       // Update only the payment status for the selected payment detail
       const updatedPaymentDetail = {
         ...record,
-        paymentStatus: row.paymentStatus,
+        paymentStatus: row.paymentStatus
       };
-  
+
       // Send a POST request to update the payment detail with its ID
-      const response = await axios.post(`${api}/user/update-single-client-details`, {
-        key: paymentHistoryId,
-        paymentHistoryId: updatedPaymentDetail._id,
-        updatedPaymentDetail: updatedPaymentDetail,
-      });
-  
+      const response = await axios.post(
+        `${api}/user/update-single-client-details`,
+        {
+          key: paymentHistoryId,
+          paymentHistoryId: updatedPaymentDetail._id,
+          updatedPaymentDetail: updatedPaymentDetail
+        }
+      );
+
       if (response.status === 200) {
         setEditingKey("");
         message.success("Client data updated successfully");
       } else {
         message.error("Failed to update client data");
       }
-  
+
       // Reset editing key modal
       setEditingKeyModal("");
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
-  
-
 
   const columns2 = [
     {
       title: "paymentDate",
       dataIndex: "paymentDate",
-      ellipsis: true,
+      ellipsis: true
     },
     {
       title: "paymentAmount",
       dataIndex: "paymentAmount",
-      ellipsis: true,
+      ellipsis: true
     },
     {
       title: "paymentStatus",
@@ -670,7 +625,7 @@ console.log(client);
         ) : (
           text
         );
-      },
+      }
     },
     {
       title: "operation",
@@ -706,10 +661,10 @@ console.log(client);
             </Typography.Link>
           </Space>
         );
-      },
-    },
+      }
+    }
   ];
-  
+
   const mergedColumns2 = columns2.map((col) => {
     if (!col.editable) {
       return col;
@@ -722,8 +677,8 @@ console.log(client);
         inputType: col.dataIndex === "paymentStatus" ? "select" : "text",
         dataIndex: col.dataIndex,
         title: col.title,
-        editing: isEditing2(record),
-      }),
+        editing: isEditing2(record)
+      })
     };
   });
   // modal payment table
@@ -775,7 +730,6 @@ console.log(client);
 
         const currentMonthYear = getCurrentMonthYear();
 
-
         // Update last fetched month and year
         setLastFetchedMonthYear(currentMonthYear);
         // console.log("Last fetched month and year updated.");
@@ -802,7 +756,7 @@ console.log(client);
           {
             clientId: user.id,
             month: currentMonthYear.month,
-            year: currentMonthYear.year,
+            year: currentMonthYear.year
           }
         );
 
@@ -818,7 +772,7 @@ console.log(client);
             clientId: user.id,
             paymentDate,
             paymentAmount,
-            paymentStatus,
+            paymentStatus
           });
 
           console.log("Payment details added successfully.");
@@ -844,10 +798,23 @@ console.log(client);
     fetchData(); // Call the async function immediately
   }, [loading, form]);
 
+  const downloadQRCode = () => {
+    const canvas = document.getElementById("myqrcode")?.querySelector("canvas");
+    if (canvas) {
+      const url = canvas.toDataURL();
+      const a = document.createElement("a");
+      a.download = "QRCode.png";
+      a.href = url;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+  
+  
   return (
     <>
       {contextHolder}
-
       <Row>
         <Col span={8}>
           <p>Total Client: {client?.length}</p>
@@ -858,12 +825,26 @@ console.log(client);
         <Col span={8}>
           <p>Pending In this month: {pendingClientsCount}</p>
         </Col>
+        <Col span={24}>
+          <div id="myqrcode">
+            <QRCode
+              value="19931998"
+              bgColor="#fff"
+              style={{
+                marginBottom: 16
+              }}
+            />
+            <Button type="primary" onClick={downloadQRCode}>
+              Download
+            </Button>
+          </div>
+        </Col>
 
         <Col span={24}>
           <Form name="dynamic_form_nest_item" onFinish={onFinish} form={form}>
             <div
               style={{
-                marginBottom: 16,
+                marginBottom: 16
               }}
             >
               <Button
@@ -876,7 +857,7 @@ console.log(client);
               </Button>
               <span
                 style={{
-                  marginLeft: 8,
+                  marginLeft: 8
                 }}
               >
                 {hasSelected ? `Selected ${selectedRowKeys.length} items` : ""}
@@ -885,8 +866,8 @@ console.log(client);
             <Table
               components={{
                 body: {
-                  cell: EditableCell,
-                },
+                  cell: EditableCell
+                }
               }}
               bordered
               dataSource={client}
@@ -894,10 +875,10 @@ console.log(client);
               // rowSelection={rowSelection}
               rowClassName="editable-row"
               pagination={{
-                onChange: cancel,
+                onChange: cancel
               }}
               scroll={{
-                y: 500,
+                y: 500
               }}
             />
             <Form.List name="users">
@@ -908,7 +889,7 @@ console.log(client);
                       key={key}
                       style={{
                         display: "flex",
-                        marginTop: 10,
+                        marginTop: 10
                       }}
                       align="baseline"
                     >
@@ -919,8 +900,8 @@ console.log(client);
                         rules={[
                           {
                             required: true,
-                            message: "Missing name",
-                          },
+                            message: "Missing name"
+                          }
                         ]}
                       >
                         <Input placeholder="Name" />
@@ -932,8 +913,8 @@ console.log(client);
                         rules={[
                           {
                             required: true,
-                            message: "Missing last MAC Address",
-                          },
+                            message: "Missing last MAC Address"
+                          }
                         ]}
                       >
                         <Input placeholder="MAC Address" />
@@ -945,8 +926,8 @@ console.log(client);
                         rules={[
                           {
                             required: true,
-                            message: "Missing device",
-                          },
+                            message: "Missing device"
+                          }
                         ]}
                       >
                         <Select placeholder="Select a device">
@@ -964,8 +945,8 @@ console.log(client);
                         rules={[
                           {
                             required: true,
-                            message: "Missing roomNo",
-                          },
+                            message: "Missing roomNo"
+                          }
                         ]}
                       >
                         <Select placeholder="Room No">
@@ -994,7 +975,7 @@ console.log(client);
                   <Form.Item>
                     <Button
                       style={{
-                        marginTop: 10,
+                        marginTop: 10
                       }}
                       type="dashed"
                       onClick={() => add()}
@@ -1038,8 +1019,8 @@ console.log(client);
               <Table
                 components={{
                   body: {
-                    cell: EditableCellPaymentStatus,
-                  },
+                    cell: EditableCellPaymentStatus
+                  }
                 }}
                 bordered
                 dataSource={selectedUser?.paymentDetails}
