@@ -775,23 +775,6 @@ console.log(client);
 
         const currentMonthYear = getCurrentMonthYear();
 
-        // console.log("Pending payments:", response.data.pendingPayments);
-        // if (response.data.pendingPayments.length === 0) {
-        //   // If pending user array is empty, call the update-payment-details API
-        //   // console.log(
-        //   //   "Pending users array is empty. Calling update-payment-details API..."
-        //   // );
-        //   console.log(client);
-        //   await axios
-        //     .post(`${api}/user/update-payment-details`)
-        //     .then((res) => console.log(res));
-        // } else {
-        //   // Process pending payments
-        //   await processPendingPayments(
-        //     response.data.pendingPayments,
-        //     currentMonthYear
-        //   );
-        // }
 
         // Update last fetched month and year
         setLastFetchedMonthYear(currentMonthYear);
