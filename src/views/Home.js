@@ -21,7 +21,6 @@ import {
   message,
 } from "antd";
 import axios from "axios";
-import moment from "moment";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
 import { Link } from "react-router-dom";
@@ -189,7 +188,7 @@ const Home = () => {
     month: 0,
     year: 0,
   });
-
+console.log(client);
   const onChange = (date, dateString) => {
     console.log(date, dateString);
   };
@@ -573,21 +572,21 @@ const Home = () => {
   const singleDelete2 = async (record) => {
     try {
       console.log(record);
-      const deleteClientId = record.paymentDate; // Assuming the key represents the client ID
+      const deleteClientId = record._id; // Assuming the key represents the client ID
       console.log(deleteClientId);
 
       // Make the DELETE request with the client ID in the request body
-      // await axios
-      //   .delete(`${api}/user/delete-client`, { data: { id: deleteClientId } })
-      //   .then((res) => {
-      //     messageApi.open({
-      //       type: "warning",
-      //       content: res?.data.message
-      //     });
-      //   })
-      //   .catch((err) => {
-      //     console.log(err);
-      //   });
+      await axios
+        .delete(`${api}/user/delete-single-client-details`, { data: { id: deleteClientId } })
+        .then((res) => {
+          messageApi.open({
+            type: "warning",
+            content: res?.data.message
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
 
       // If the deletion is successful, update the client state
       const updatedClient = client.filter(
@@ -605,82 +604,39 @@ const Home = () => {
   };
 
 
-  const save2 = async (record, paymentDetailIndex) => {
+  const save2 = async (record, paymentHistoryId) => {
+
     try {
       const row = await form.validateFields();
-      // console.log("Selected User Before Update:", selectedUser);
-
-      const updatedPaymentDetails = selectedUser.paymentDetails.map(
-        (payment, index) => {
-          if (index === paymentDetailIndex) {
-            // Update only the payment status for the selected payment detail
-            return {
-              ...payment,
-              paymentStatus: row.paymentStatus,
-            };
-          }
-          return payment;
-        }
-      );
-      // console.log(updatedPaymentDetails);
-
-      // Update selected user's payment details with the updated payment status
-      const updatedUser = {
-        ...selectedUser,
-        paymentDetails: updatedPaymentDetails,
+  
+      // Update only the payment status for the selected payment detail
+      const updatedPaymentDetail = {
+        ...record,
+        paymentStatus: row.paymentStatus,
       };
-      // console.log("Updated User:", updatedUser);
-
-      // Update the client array with the updated user
-      const updatedClients = client.map((clientItem) =>
-        clientItem.key === updatedUser.key ? updatedUser : clientItem
-      );
-      // console.log("Updated Clients:", updatedClients);
-
-      const response = await axios
-        .post(`${api}/user/update-single-client-details`, {
-          key: updatedUser.key,
-          paymentDetailIndex: paymentDetailIndex,
-          updatedPaymentDetail: updatedPaymentDetails[paymentDetailIndex],
-        })
-        .then((response) => {
-          console.log(response);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-
+  
+      // Send a POST request to update the payment detail with its ID
+      const response = await axios.post(`${api}/user/update-single-client-details`, {
+        key: paymentHistoryId,
+        paymentHistoryId: updatedPaymentDetail._id,
+        updatedPaymentDetail: updatedPaymentDetail,
+      });
+  
       if (response.status === 200) {
         setEditingKey("");
         message.success("Client data updated successfully");
       } else {
         message.error("Failed to update client data");
       }
-
-      // Update the client state with the updated array
-      setClient(updatedClients);
-
+  
       // Reset editing key modal
       setEditingKeyModal("");
-
-      // message.success("Payment status updated successfully");
     } catch (errInfo) {
       console.log("Validate Failed:", errInfo);
     }
   };
+  
 
-  const determinePaymentDetailsIndex = (selectedUser, record) => {
-    // Iterate through the paymentDetails array of the selectedUser
-    for (let i = 0; i < selectedUser.paymentDetails.length; i++) {
-      // Check if the paymentDate matches the record's paymentDate
-      if (selectedUser.paymentDetails[i].paymentDate === record.paymentDate) {
-        // If found, return the index
-        return i;
-      }
-    }
-    // If not found, return -1 or handle accordingly based on your requirements
-    return -1;
-  };
 
   const columns2 = [
     {
@@ -721,15 +677,11 @@ const Home = () => {
       dataIndex: "operation",
       ellipsis: true,
       render: (_, record) => {
-        const paymentDetailsIndex = determinePaymentDetailsIndex(
-          selectedUser,
-          record
-        );
         const editable = isEditing2(record);
         return editable ? (
           <span>
             <Typography.Link
-              onClick={() => save2(record, paymentDetailsIndex)}
+              onClick={() => save2(record, selectedUser.key)}
               style={{ marginRight: 8 }}
             >
               Save
