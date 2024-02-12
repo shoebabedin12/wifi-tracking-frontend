@@ -1,3 +1,5 @@
+import { StyleProvider } from "@ant-design/cssinjs";
+import { ConfigProvider } from "antd";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
@@ -9,7 +11,11 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <App />
+      <StyleProvider hashPriority="high">
+        <ConfigProvider theme={{ cssVar: { key: 'app' } }} >
+          <App />
+        </ConfigProvider>
+      </StyleProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

@@ -4,6 +4,7 @@ import {
   SearchOutlined
 } from "@ant-design/icons";
 import {
+  Badge,
   Button,
   Col,
   DatePicker,
@@ -384,7 +385,9 @@ const Home = () => {
     {
       title: "Status",
       dataIndex: "status",
+      key: "status",
       editable: true,
+      render: () => <Badge status="success" text="Finished" />,
       ...getColumnSearchProps("status")
     },
     {
@@ -870,7 +873,7 @@ const Home = () => {
                 {hasSelected ? `Selected ${selectedRowKeys.length} items` : ""}
               </span>
             </div>
-            <Table
+            <Table loading={loading}
               components={{
                 body: {
                   cell: EditableCell
