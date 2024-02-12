@@ -29,9 +29,9 @@ import { Link } from "react-router-dom";
 const { Option } = Select;
 
 const EditableCell = ({
+  title,
   editing,
   dataIndex,
-  title,
   inputType,
   record,
   index,
@@ -444,9 +444,17 @@ const Home = () => {
         dataIndex: col.dataIndex,
         title: col.title,
         editing: isEditing(record)
-      })
+      }),
+      render: (text, record) => {
+        const dataLabel = `${col.title}`; // Custom label combining column title and record key
+        return {
+          children: <span data-label={dataLabel}>{text}</span>,
+        };
+      },
     };
   });
+  
+  
 
   const onFinish = async (values) => {
     console.log("Received values of form:", values);

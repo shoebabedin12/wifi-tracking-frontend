@@ -71,9 +71,23 @@ body {
     display: block;
   }
 
-  table td::before {
+  table td span::before {
     content: attr(data-label);
     font-weight: bold;
     text-transform: uppercase;
+    margin-right: 1rem;
+  }
+  .ant-table-body td span{
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+  }
+  .ant-table-body td:first-child {
+    /* justify-content: flex-start; */
+    background: #fafbfc;
+  }
+
+  table td:last-child {
+    border-bottom: 0;
   }
 }
