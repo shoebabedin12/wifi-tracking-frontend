@@ -31,6 +31,7 @@ const SideNav = () => {
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
         breakpoint="lg"
+        className="nav-responsive"
       >
         <div className="demo-logo-vertical">
         {user?.email && user.email.split("@")[0]}

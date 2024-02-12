@@ -361,35 +361,32 @@ const Home = () => {
       title: "name",
       dataIndex: "name",
       editable: true,
-      ellipsis: true,
+      fixed: "left",
+      width: 120,
       ...getColumnSearchProps("name")
     },
     {
       title: "MAC address",
       dataIndex: "macAddress",
       editable: true,
-      ellipsis: true,
       ...getColumnSearchProps("macAddress")
     },
     {
       title: "Device",
       dataIndex: "device",
       editable: true,
-      ellipsis: true,
       ...getColumnSearchProps("device")
     },
     {
       title: "Room NO",
       dataIndex: "roomNo",
       editable: true,
-      ellipsis: true,
       ...getColumnSearchProps("roomNo")
     },
     {
       title: "Status",
       dataIndex: "status",
       editable: true,
-      ellipsis: true,
       ...getColumnSearchProps("status")
     },
     {
@@ -810,23 +807,27 @@ const Home = () => {
       document.body.removeChild(a);
     }
   };
-  
-  
+
   return (
     <>
       {contextHolder}
-      <Row>
-        <Col span={8}>
+      <Row gutter={16} wrap>
+        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
           <p>Total Client: {client?.length}</p>
         </Col>
-        <Col span={8}>
+        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
           <p>Paid In this month: {paidClientsCount}</p>
         </Col>
-        <Col span={8}>
+        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
           <p>Pending In this month: {pendingClientsCount}</p>
         </Col>
         <Col span={24}>
-          <div id="myqrcode">
+          <Space
+            size="middle"
+            id="myqrcode"
+            wrap
+            style={{ marginBottom: "1rem" }}
+          >
             <QRCode
               value="19931998"
               bgColor="#fff"
@@ -837,7 +838,7 @@ const Home = () => {
             <Button type="primary" onClick={downloadQRCode}>
               Download
             </Button>
-          </div>
+          </Space>
         </Col>
 
         <Col span={24}>
@@ -878,7 +879,7 @@ const Home = () => {
                 onChange: cancel
               }}
               scroll={{
-                y: 500
+                y: 500,
               }}
             />
             <Form.List name="users">
@@ -886,14 +887,15 @@ const Home = () => {
                 <>
                   {fields.map(({ key, name, ...restField }) => (
                     <Space
+                      wrap
                       key={key}
                       style={{
-                        display: "flex",
                         marginTop: 10
                       }}
                       align="baseline"
                     >
                       <Form.Item
+                        style={{ width: "100%" }}
                         {...restField}
                         name={[name, "name"]}
                         fieldKey={[name, "name"]}
@@ -907,6 +909,7 @@ const Home = () => {
                         <Input placeholder="Name" />
                       </Form.Item>
                       <Form.Item
+                        style={{ width: "100%" }}
                         {...restField}
                         name={[name, "macAddress"]}
                         fieldKey={[name, "macAddress"]}
@@ -920,6 +923,7 @@ const Home = () => {
                         <Input placeholder="MAC Address" />
                       </Form.Item>
                       <Form.Item
+                        style={{ width: "100%", flex: "1 1 100%" }}
                         {...restField}
                         name={[name, "device"]}
                         fieldKey={[name, "device"]}
@@ -939,6 +943,7 @@ const Home = () => {
                         </Select>
                       </Form.Item>
                       <Form.Item
+                        style={{ width: "100%", flex: "1 1 100%" }}
                         {...restField}
                         name={[name, "roomNo"]}
                         fieldKey={[name, "roomNo"]}

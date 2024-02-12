@@ -4,6 +4,9 @@ body {
   margin: 0;
   background: #fff;
 }
+.gutter-box {
+  padding: 8px 0;
+}
 .active-link {
   color: #1890ff; /* Change this to the desired active color */
 }
@@ -32,4 +35,45 @@ body {
   position: absolute;
   top: 100%;
   font-size: 12px;
+}
+
+@media screen and (max-width: 768px) {
+  .nav-responsive {
+    display: none;
+  }
+  th {
+    visibility: hidden;
+    height: 0px;
+    display: none;
+  }
+  table {
+    border: 0;
+  }
+
+  table thead {
+    border: none;
+    clip: rect(0 0 0 0);
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    width: 1px;
+  }
+
+  table tr {
+    display: block;
+    margin-bottom: 0.625em;
+    border: 0px;
+  }
+
+  table td {
+    display: block;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    text-transform: uppercase;
+  }
 }
