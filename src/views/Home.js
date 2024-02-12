@@ -361,8 +361,6 @@ const Home = () => {
       title: "name",
       dataIndex: "name",
       editable: true,
-      fixed: "left",
-      width: 120,
       ...getColumnSearchProps("name")
     },
     {
