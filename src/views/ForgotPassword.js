@@ -3,7 +3,48 @@ import { Content } from "antd/es/layout/layout";
 import React from "react";
 
 const ForgotPassword = ({ email }) => {
+  const api = process.env.REACT_APP_API_KEY;
   const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const [loadings, setLoadings] = useState([]);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const enterLoading = (index) => {
+    setLoadings((prevLoadings) => {
+      const newLoadings = [...prevLoadings];
+      newLoadings[index] = true;
+      return newLoadings;
+    });
+    setTimeout(() => {
+      setLoadings((prevLoadings) => {
+        const newLoadings = [...prevLoadings];
+        newLoadings[index] = false;
+        return newLoadings;
+      });
+    }, 6000);
+  };
+
+  const onFinish = async (values) => {
+    await axios
+      .post(`${api}/auth/forgot-password`, values)
+      .then((response) => {
+        console.log(response);
+        if (response?.status === 200) {
+          messageApi.open({
+            type: "success",
+            content: response?.data.message
+          });
+          navigate("/login");
+        }
+      })
+      .catch((error) => {
+        messageApi.open({
+          type: "error",
+          content: error.response.data.message
+        });
+        console.log(error);
+      });
+  };
   return (
     <>
       <Content
@@ -22,17 +63,36 @@ const ForgotPassword = ({ email }) => {
           style={{
             maxWidth: 600
           }}
+          initialValues={{
+            remember: true
+          }}
           layout="vertical"
+          onFinish={onFinish}
         >
           <Alert
             message={`Try modify ${email ? email : ""}`}
             type="info"
             showIcon
           />
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              {
+                required: true,
+                message: "Please input your Username!"
+              }
+            ]}
+          >
+            <Input
+              prefix={<UserOutlined className="site-form-item-icon" />}
+              placeholder="Username"
+            />
+          </Form.Item>
 
           <Form.Item
-            label="Password"
-            name="password"
+            label="Old Password"
+            name="oldpassword"
             rules={[
               {
                 required: true
@@ -44,23 +104,12 @@ const ForgotPassword = ({ email }) => {
 
           {/* Field */}
           <Form.Item
-            label="Confirm Password"
-            name="confirmPassword"
-            dependencies={["password"]}
+            label="New Password"
+            name="newPassword"
             rules={[
               {
                 required: true
-              },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("The new password that you entered do not match!")
-                  );
-                }
-              })
+              }
             ]}
           >
             <Input />
@@ -78,7 +127,27 @@ const ForgotPassword = ({ email }) => {
             )}
           </Form.Item>
           <Form.Item>
-           <Button onClick={()=> window.history.back()} className="login-form-button">Back</Button>
+            <Space
+              style={{
+                gap: "1rem"
+              }}
+            >
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="login-form-button"
+                loading={loadings[0]}
+                onClick={() => enterLoading(0)}
+              >
+                Submit
+              </Button>
+              <Button
+                onClick={() => window.history.back()}
+                className="login-form-button"
+              >
+                Back
+              </Button>
+            </Space>
           </Form.Item>
         </Form>
       </Content>

@@ -4,9 +4,6 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import SideNav from '../Common/sideNav/SideNav';
 
-
-
-
 const CustomLayouts = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
