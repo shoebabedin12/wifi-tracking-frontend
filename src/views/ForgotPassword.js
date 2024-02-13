@@ -1,6 +1,9 @@
-import { Alert, Button, Form, Input, Typography } from "antd";
+import { UserOutlined } from "@ant-design/icons";
+import { Alert, Button, Form, Input, Space, Typography, message } from "antd";
 import { Content } from "antd/es/layout/layout";
-import React from "react";
+import axios from "axios";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const ForgotPassword = ({ email }) => {
   const api = process.env.REACT_APP_API_KEY;
