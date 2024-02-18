@@ -133,6 +133,7 @@ const Home = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [paidClientsCount, setPaidClientsCount] = useState(0);
+  const [allClientsCount, setAllClientsCount] = useState(0);
   const [pendingClientsCount, setPendingClientsCount] = useState(0);
   const [paymentPendingData, setPaymentPendingData] = useState([]);
   const [paymentNeededData, setPaymentNeededData] = useState([]);
@@ -143,7 +144,7 @@ const Home = () => {
     month: 0,
     year: 0
   });
-  console.log(client);
+console.log(client);
   const onChange = (date, dateString) => {
     console.log(date, dateString);
   };
@@ -383,13 +384,24 @@ const Home = () => {
       ...getColumnSearchProps("roomNo")
     },
     {
-      title: "Status",
+      title: "Connection Status",
       dataIndex: "status",
       key: "status",
       editable: true,
-      render: () => <Badge status="success" text="Finished" />,
       ...getColumnSearchProps("status")
     },
+    {
+      title: "Payment Status",
+      dataIndex: "paymentStatus",
+      key: "paymentStatus",
+      render: (paymentStatus) => (
+        <Badge
+          status={paymentStatus === "paid" ? "success" : "default"}
+          text={paymentStatus === "paid" ? "Finished" : "Pending"}
+        />
+      ),
+    },
+    
     {
       title: "operation",
       dataIndex: "operation",
@@ -689,35 +701,43 @@ const Home = () => {
   });
   // modal payment table
 
+ 
+
+
   const calculatePaymentCounts = (clients) => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth(); // Month is zero-based
 
-    // Filter clients based on payment details for the current month
-    const paidClients = clients.filter((client) => {
-      return client.paymentDetails.some((payment) => {
-        const paymentDate = new Date(payment.paymentDate);
-        return (
-          paymentDate.getMonth() === currentMonth &&
-          payment.paymentStatus === "paid"
-        );
-      });
-    });
+    // Filter out clients with "deactive" status
+    const activeClients = clients.filter(client => client.status !== "Disconnect");
+    setAllClientsCount(activeClients)
+    // Calculate counts for active clients
+    const paidClientsCount = activeClients.filter((client) => {
+        return client.paymentDetails.some((payment) => {
+            const paymentDate = new Date(payment.paymentDate);
+            return (
+                paymentDate.getMonth() === currentMonth &&
+                payment.paymentStatus === "paid"
+            );
+        });
+    }).length;
 
-    const pendingClients = clients.filter((client) => {
-      return !client.paymentDetails.some((payment) => {
-        const paymentDate = new Date(payment.paymentDate);
-        return (
-          paymentDate.getMonth() === currentMonth &&
-          payment.paymentStatus === "paid"
-        );
-      });
-    });
+    const pendingClientsCount = activeClients.filter((client) => {
+        return !client.paymentDetails.some((payment) => {
+            const paymentDate = new Date(payment.paymentDate);
+            return (
+                paymentDate.getMonth() === currentMonth &&
+                payment.paymentStatus === "paid"
+            );
+        });
+    }).length;
 
     // Update state with the counts
-    setPaidClientsCount(paidClients.length);
-    setPendingClientsCount(pendingClients.length);
-  };
+    setPaidClientsCount(paidClientsCount);
+    setPendingClientsCount(pendingClientsCount);
+};
+
+
 
   useEffect(() => {
     const fetchPendingPayments = async () => {
@@ -822,7 +842,7 @@ const Home = () => {
       {contextHolder}
       <Row gutter={16} wrap>
         <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
-          <p>Total Client: {client?.length}</p>
+          <p>Total Client: {allClientsCount.length}</p>
         </Col>
         <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
           <p>Paid In this month: {paidClientsCount}</p>
