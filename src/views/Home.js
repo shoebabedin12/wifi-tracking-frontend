@@ -776,7 +776,6 @@ const Home = () => {
 
   // payment add form
   // modal payment table
-
   const calculatePaymentCounts = (clients) => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth(); // Month is zero-based
@@ -786,25 +785,35 @@ const Home = () => {
       (client) => client.status !== "Disconnect"
     );
     setAllClientsCount(activeClients);
-    // Calculate counts for active clients
+
     const paidClientsCount = activeClients.filter((client) => {
-      return client.paymentDetails.some((payment) => {
-        const paymentDate = new Date(payment.paymentDate);
-        return (
-          paymentDate.getMonth() === currentMonth &&
-          payment.paymentStatus === "paid"
-        );
-      });
+      // Check if the client's payment status is 'paid'
+      return (
+        client.paymentStatus === "paid" &&
+        client.paymentDetails.some((payment) => {
+          const paymentMonths = payment.paymentMonth.map(
+            (month) => new Date(month)
+          );
+          return paymentMonths.some(
+            (month) => month.getMonth() === currentMonth
+          );
+        })
+      );
     }).length;
 
     const pendingClientsCount = activeClients.filter((client) => {
-      return !client.paymentDetails.some((payment) => {
-        const paymentDate = new Date(payment.paymentDate);
-        return (
-          paymentDate.getMonth() === currentMonth &&
-          payment.paymentStatus === "paid"
-        );
-      });
+      // Check if the client's payment status is 'pending'
+      return (
+        client.paymentStatus === "pending" &&
+        !client.paymentDetails.some((payment) => {
+          const paymentMonths = payment.paymentMonth.map(
+            (month) => new Date(month)
+          );
+          return paymentMonths.some(
+            (month) => month.getMonth() === currentMonth
+          );
+        })
+      );
     }).length;
 
     // Update state with the counts
@@ -914,6 +923,11 @@ const Home = () => {
     <>
       {contextHolder}
       <Row gutter={16} wrap>
+        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
+          <Button danger onClick={() => localStorage.clear()}>
+            Logout
+          </Button>
+        </Col>
         <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
           <p>Total Client: {allClientsCount.length}</p>
         </Col>
