@@ -4,7 +4,6 @@ import {
   SearchOutlined
 } from "@ant-design/icons";
 import {
-  Badge,
   Button,
   Col,
   DatePicker,
@@ -14,7 +13,6 @@ import {
   InputNumber,
   Modal,
   Popconfirm,
-  QRCode,
   Row,
   Select,
   Space,
@@ -23,6 +21,7 @@ import {
   message
 } from "antd";
 import axios from "axios";
+import dayjs from "dayjs";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
 import { Link } from "react-router-dom";
@@ -119,6 +118,7 @@ const getCurrentMonthYear = () => {
 const Home = () => {
   const api = process.env.REACT_APP_API_KEY;
   const [form] = Form.useForm();
+  const [modalForm] = Form.useForm();
   const [messageApi, contextHolder] = message.useMessage();
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [client, setClient] = useState([]);
@@ -144,11 +144,10 @@ const Home = () => {
     month: 0,
     year: 0
   });
-console.log(client);
+
   const onChange = (date, dateString) => {
     console.log(date, dateString);
   };
-
   const start = () => {
     setLoading(true);
     setTimeout(() => {
@@ -276,7 +275,6 @@ console.log(client);
         text
       )
   });
-
   const edit = (record) => {
     form.setFieldsValue({
       name: record.name,
@@ -287,7 +285,6 @@ console.log(client);
     });
     setEditingKey(record.key);
   };
-
   const singleDelete = async (record) => {
     try {
       console.log(record);
@@ -315,7 +312,6 @@ console.log(client);
       // Handle errors if necessary
     }
   };
-
   const cancel = () => {
     setEditingKey("");
   };
@@ -358,6 +354,7 @@ console.log(client);
     }
   };
 
+  // main form
   const columns = [
     {
       title: "name",
@@ -393,15 +390,11 @@ console.log(client);
     {
       title: "Payment Status",
       dataIndex: "paymentStatus",
-      key: "paymentStatus",
-      render: (paymentStatus) => (
-        <Badge
-          status={paymentStatus === "paid" ? "success" : "default"}
-          text={paymentStatus === "paid" ? "Finished" : "Pending"}
-        />
-      ),
+      key: "Payment Status",
+      editable: false,
+      ...getColumnSearchProps("Payment Status")
     },
-    
+
     {
       title: "operation",
       dataIndex: "operation",
@@ -461,13 +454,11 @@ console.log(client);
       render: (text, record) => {
         const dataLabel = `${col.title}`; // Custom label combining column title and record key
         return {
-          children: <span data-label={dataLabel}>{text}</span>,
+          children: <span data-label={dataLabel}>{text}</span>
         };
-      },
+      }
     };
   });
-  
-  
 
   const onFinish = async (values) => {
     console.log("Received values of form:", values);
@@ -491,6 +482,7 @@ console.log(client);
         console.log(error);
       });
   };
+  // main form
 
   const showModal = (record) => {
     setSelectedUser(record);
@@ -530,11 +522,30 @@ console.log(client);
       });
   };
 
-  // modal payment table
+  // payment add form
+  const range = (start, end) => {
+    const result = [];
+    for (let i = start; i < end; i++) {
+      result.push(i);
+    }
+    return result;
+  };
+  const disabledDate = (current) => {
+    // Disable dates in the future
+    if (current && current > dayjs().endOf("day")) {
+      return true;
+    }
+    // Disable dates in the past
+    if (current && current < dayjs().subtract(12, "month").endOf("month")) {
+      return true;
+    }
+    return false;
+  };
 
   const edit2 = (record) => {
     form.setFieldsValue({
       paymentDate: record.paymentDate,
+      paymentMonth: record.paymentMonth,
       paymentAmount: record.paymentAmount,
       paymentStatus: record.paymentStatus
     });
@@ -623,6 +634,11 @@ console.log(client);
       ellipsis: true
     },
     {
+      title: "paymentMonth",
+      dataIndex: "paymentMonth",
+      ellipsis: true
+    },
+    {
       title: "paymentStatus",
       dataIndex: "paymentStatus",
       editable: true,
@@ -699,45 +715,102 @@ console.log(client);
       })
     };
   });
+
+  const onFinish2 = async (values, userId) => {
+    try {
+      values.users = values.users.map((user) => {
+        const formattedMonths = user.paymentMonth.map((month) =>
+          dayjs(month).format("YYYY-MM")
+        );
+        return {
+          ...user,
+          paymentDate: dayjs(user.paymentDate).format("YYYY-MM-DD"),
+          paymentMonth: formattedMonths
+        };
+      });
+
+      console.log("Received values of form:", values.users);
+      console.log("Received values of form:", userId);
+
+      // Iterate through each user and send the payment details
+      for (const user of values.users) {
+        // Extract user details
+        const { paymentDate, paymentMonth, paymentAmount, paymentStatus } =
+          user;
+
+        // Use userId passed from the form
+        const clientId = userId;
+        // Perform Axios POST request to send payment details
+        const paymentResponse = await axios.post(
+          `${api}/user/add-client-payment-history`,
+          {
+            clientId,
+            paymentDate,
+            paymentMonth,
+            paymentAmount,
+            paymentStatus
+          }
+        );
+
+        // Log response
+        console.log("Payment details response:", paymentResponse.data);
+      }
+
+      // Reset form fields if necessary
+      form.resetFields();
+
+      // Display success message if needed
+      // messageApi.open({
+      //   type: "success",
+      //   content: "Payment details submitted successfully"
+      // });
+    } catch (error) {
+      // Handle errors
+      messageApi.open({
+        type: "error",
+        content: error.response.data.message
+      });
+      console.log(error);
+    }
+  };
+
+  // payment add form
   // modal payment table
-
- 
-
 
   const calculatePaymentCounts = (clients) => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth(); // Month is zero-based
 
     // Filter out clients with "deactive" status
-    const activeClients = clients.filter(client => client.status !== "Disconnect");
-    setAllClientsCount(activeClients)
+    const activeClients = clients.filter(
+      (client) => client.status !== "Disconnect"
+    );
+    setAllClientsCount(activeClients);
     // Calculate counts for active clients
     const paidClientsCount = activeClients.filter((client) => {
-        return client.paymentDetails.some((payment) => {
-            const paymentDate = new Date(payment.paymentDate);
-            return (
-                paymentDate.getMonth() === currentMonth &&
-                payment.paymentStatus === "paid"
-            );
-        });
+      return client.paymentDetails.some((payment) => {
+        const paymentDate = new Date(payment.paymentDate);
+        return (
+          paymentDate.getMonth() === currentMonth &&
+          payment.paymentStatus === "paid"
+        );
+      });
     }).length;
 
     const pendingClientsCount = activeClients.filter((client) => {
-        return !client.paymentDetails.some((payment) => {
-            const paymentDate = new Date(payment.paymentDate);
-            return (
-                paymentDate.getMonth() === currentMonth &&
-                payment.paymentStatus === "paid"
-            );
-        });
+      return !client.paymentDetails.some((payment) => {
+        const paymentDate = new Date(payment.paymentDate);
+        return (
+          paymentDate.getMonth() === currentMonth &&
+          payment.paymentStatus === "paid"
+        );
+      });
     }).length;
 
     // Update state with the counts
     setPaidClientsCount(paidClientsCount);
     setPendingClientsCount(pendingClientsCount);
-};
-
-
+  };
 
   useEffect(() => {
     const fetchPendingPayments = async () => {
@@ -850,25 +923,6 @@ console.log(client);
         <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
           <p>Pending In this month: {pendingClientsCount}</p>
         </Col>
-        <Col span={24}>
-          <Space
-            size="middle"
-            id="myqrcode"
-            wrap
-            style={{ marginBottom: "1rem" }}
-          >
-            <QRCode
-              value="19931998"
-              bgColor="#fff"
-              style={{
-                marginBottom: 16
-              }}
-            />
-            <Button type="primary" onClick={downloadQRCode}>
-              Download
-            </Button>
-          </Space>
-        </Col>
 
         <Col span={24}>
           <Form name="dynamic_form_nest_item" onFinish={onFinish} form={form}>
@@ -893,7 +947,8 @@ console.log(client);
                 {hasSelected ? `Selected ${selectedRowKeys.length} items` : ""}
               </span>
             </div>
-            <Table loading={loading}
+            <Table
+              loading={loading}
               components={{
                 body: {
                   cell: EditableCell
@@ -908,7 +963,7 @@ console.log(client);
                 onChange: cancel
               }}
               scroll={{
-                y: 500,
+                y: 500
               }}
             />
             <Form.List name="users">
@@ -1049,7 +1104,11 @@ console.log(client);
                   </Descriptions.Item>
                 ))}
             </Descriptions>
-            <Form form={form}>
+            <Form
+              form={modalForm}
+              name="dynamic_form_nest_item"
+              onFinish={(values) => onFinish2(values, selectedUser.key)}
+            >
               <Table
                 components={{
                   body: {
@@ -1066,6 +1125,119 @@ console.log(client);
                   isEditing(record) ? "editing-row" : ""
                 }
               />
+              <Form.List name="users">
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map(({ key, name, fieldKey, ...restField }) => (
+                      <Space
+                        key={key}
+                        style={{ marginTop: 10 }}
+                        align="baseline"
+                        wrap
+                      >
+                        <Form.Item
+                          {...restField}
+                          name={[name, "userId"]} // Add a hidden field for user ID
+                          fieldKey={[fieldKey, "userId"]} // Add a hidden field for user ID
+                          hidden // Hide the user ID field
+                        >
+                          <Input type="hidden" value={selectedUser.key} />
+                        </Form.Item>
+                        <Form.Item
+                          style={{ width: "100%" }}
+                          {...restField}
+                          name={[name, "paymentDate"]}
+                          fieldKey={[fieldKey, "paymentDate"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "Missing paymentDate"
+                            }
+                          ]}
+                        >
+                          <DatePicker
+                            style={{ width: "100%" }}
+                            placeholder="Payment Date"
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          style={{ width: "100%" }}
+                          {...restField}
+                          name={[name, "paymentMonth"]}
+                          fieldKey={[fieldKey, "paymentMonth"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please select a payment month"
+                            }
+                          ]}
+                        >
+                          <DatePicker
+                            multiple
+                            picker="month"
+                            onChange={onChange}
+                            placeholder="Select payment month"
+                          />
+                        </Form.Item>
+
+                        <Form.Item
+                          style={{ width: "100%" }}
+                          {...restField}
+                          name={[name, "paymentAmount"]}
+                          fieldKey={[fieldKey, "paymentAmount"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "Missing last Payment Amount"
+                            }
+                          ]}
+                        >
+                          <Input placeholder="Payment Amount" />
+                        </Form.Item>
+
+                        <Form.Item
+                          style={{ width: "100%", flex: "1 1 100%" }}
+                          {...restField}
+                          name={[name, "paymentStatus"]}
+                          fieldKey={[fieldKey, "paymentStatus"]}
+                          rules={[
+                            {
+                              required: true,
+                              message: "Please select a payment status"
+                            }
+                          ]}
+                        >
+                          <Select placeholder="Select a payment Status">
+                            <Select.Option value="paid">Paid</Select.Option>
+                            <Select.Option value="pending">
+                              Pending
+                            </Select.Option>
+                          </Select>
+                        </Form.Item>
+
+                        <MinusCircleOutlined onClick={() => remove(name)} />
+                      </Space>
+                    ))}
+                    <Form.Item>
+                      <Button
+                        type="dashed"
+                        onClick={() => add()}
+                        block
+                        icon={<PlusOutlined />}
+                      >
+                        Add field
+                      </Button>
+                    </Form.Item>
+                  </>
+                )}
+              </Form.List>
+
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Submit
+                </Button>
+              </Form.Item>
             </Form>
           </>
         )}

@@ -37,6 +37,10 @@ body {
   font-size: 12px;
 }
 
+.logout-button button {
+  width: calc(100% - 5px);
+}
+
 @media screen and (max-width: 768px) {
   .nav-responsive,
   .ant-layout-header {

@@ -1,5 +1,5 @@
 import { HomeOutlined } from "@ant-design/icons";
-import { Menu } from "antd";
+import { Button, Menu } from "antd";
 import Sider from "antd/es/layout/Sider";
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
@@ -27,26 +27,29 @@ const SideNav = () => {
   return (
     <>
       <Sider
-        collapsible
-        collapsed={collapsed}
-        onCollapse={(value) => setCollapsed(value)}
-        breakpoint="lg"
-        className="nav-responsive"
-      >
-        <div className="demo-logo-vertical">
-        {user?.email && user.email.split("@")[0]}
+  collapsible
+  collapsed={collapsed}
+  onCollapse={(value) => setCollapsed(value)}
+  breakpoint="lg"
+  className="nav-responsive"
+>
+  <div className="demo-logo-vertical">
+    {user?.email && user.email.split("@")[0]}
+  </div>
+  <Menu theme="dark" mode="inline" defaultSelectedKeys={["0"]}>
+    {items.map((item) => (
+      <Menu.Item key={item.key} icon={item.icon}>
+        <NavLink to={item.path} className="nav-text">
+          {item.label}
+        </NavLink>
+      </Menu.Item>
+    ))}
+  </Menu>
+  <div className="logout-button">
+    <Button danger>Logout</Button>
+  </div>
+</Sider>
 
-        </div>
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={["0"]}>
-          {items.map((item) => (
-            <Menu.Item key={item.key} icon={item.icon}>
-              <NavLink to={item.path} className="nav-text">
-                {item.label}
-              </NavLink>
-            </Menu.Item>
-          ))}
-        </Menu>
-      </Sider>
     </>
   );
 };
