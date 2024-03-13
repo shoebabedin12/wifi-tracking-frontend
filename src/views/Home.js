@@ -816,6 +816,9 @@ const Home = () => {
       );
     }).length;
 
+    console.log(paidClientsCount);
+    console.log(pendingClientsCount);
+
     // Update state with the counts
     setPaidClientsCount(paidClientsCount);
     setPendingClientsCount(pendingClientsCount);
