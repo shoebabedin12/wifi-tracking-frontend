@@ -922,19 +922,19 @@ const Home = () => {
   return (
     <>
       {contextHolder}
-      <Row gutter={16} wrap>
-        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
+      <Row gutter={16} wrap align="middle">
+        <Col className="gutter-row" span={6} lg={6} md={6} sm={12} xs={24}>
           <Button danger onClick={() => localStorage.clear()}>
             Logout
           </Button>
         </Col>
-        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
+        <Col className="gutter-row" span={6} lg={6} md={6} sm={12} xs={24}>
           <p>Total Client: {allClientsCount.length}</p>
         </Col>
-        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
+        <Col className="gutter-row" span={6} lg={6} md={6} sm={12} xs={24}>
           <p>Paid In this month: {paidClientsCount}</p>
         </Col>
-        <Col className="gutter-row" span={8} lg={8} md={12} sm={12} xs={24}>
+        <Col className="gutter-row" span={6} lg={6} md={6} sm={12} xs={24}>
           <p>Pending In this month: {pendingClientsCount}</p>
         </Col>
 
