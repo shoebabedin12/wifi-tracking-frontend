@@ -6,25 +6,22 @@ import {
 import {
   Button,
   Col,
-  DatePicker,
-  Descriptions,
   Form,
   Input,
   InputNumber,
-  Modal,
   Popconfirm,
   Row,
   Select,
   Space,
   Table,
+  Tag,
   Typography,
   message
 } from "antd";
 import axios from "axios";
-import dayjs from "dayjs";
 import React, { useEffect, useRef, useState } from "react";
 import Highlighter from "react-highlight-words";
-import { Link } from "react-router-dom";
+import PaymentTableModal from "../components/UI/PaymentTableModal";
 
 const { Option } = Select;
 
@@ -67,49 +64,6 @@ const EditableCell = ({
   );
 };
 
-const EditableCellPaymentStatus = ({
-  editing,
-  dataIndex, // dataIndex is defined here
-  title, // title is defined here
-  record,
-  inputType,
-  children,
-  ...restProps
-}) => {
-  let inputNode;
-
-  if (dataIndex === "paymentDate") {
-    inputNode = <DatePicker style={{ width: "100%" }} />;
-  } else if (dataIndex === "paymentAmount") {
-    inputNode = <Input />;
-  } else if (dataIndex === "paymentStatus") {
-    inputNode = (
-      <Select>
-        <Option value="paid">Paid</Option>
-        <Option value="pending">Pending</Option>
-      </Select>
-    );
-  } else {
-    inputNode = <Input />;
-  }
-
-  return (
-    <td {...restProps}>
-      {editing ? (
-        <Form.Item
-          name={dataIndex}
-          style={{ margin: 0 }}
-          rules={[{ required: true, message: `Please Select ${title}!` }]}
-        >
-          {inputNode}
-        </Form.Item>
-      ) : (
-        children
-      )}
-    </td>
-  );
-};
-
 const getCurrentMonthYear = () => {
   const currentDate = new Date();
   return { month: currentDate.getMonth() + 1, year: currentDate.getFullYear() };
@@ -128,8 +82,6 @@ const Home = () => {
   const searchInput = useRef(null);
   const [editingKey, setEditingKey] = useState("");
   const isEditing = (record) => record.key === editingKey;
-  const [editingKeyModal, setEditingKeyModal] = useState("");
-  const isEditing2 = (record) => record.paymentDate === editingKeyModal;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [paidClientsCount, setPaidClientsCount] = useState(0);
@@ -287,9 +239,7 @@ const Home = () => {
   };
   const singleDelete = async (record) => {
     try {
-      console.log(record);
       const deleteClientId = record.key; // Assuming the key represents the client ID
-      console.log(deleteClientId);
 
       // Make the DELETE request with the client ID in the request body
       await axios
@@ -320,7 +270,6 @@ const Home = () => {
     try {
       const row = await form.validateFields();
       const index = client.findIndex((item) => key === item.key);
-
       if (index > -1) {
         const updatedClient = {
           ...client[index],
@@ -392,7 +341,15 @@ const Home = () => {
       dataIndex: "paymentStatus",
       key: "Payment Status",
       editable: false,
-      ...getColumnSearchProps("Payment Status")
+      ...getColumnSearchProps("Payment Status"),
+      render: (_, { paymentStatus }) => {
+        let color = paymentStatus.length > 5 ? "red" : "green";
+        return (
+          <Tag color={color} key={paymentStatus}>
+            {paymentStatus.toUpperCase()}
+          </Tag>
+        );
+      }
     },
 
     {
@@ -490,292 +447,14 @@ const Home = () => {
   };
   const handleOk = () => {
     setIsModalOpen(false);
-
     form.resetFields();
   };
   const handleCancel = () => {
     setIsModalOpen(false);
-
     form.resetFields();
   };
 
-  const onFinishPayment = async (values) => {
-    console.log("Received values of form:", values);
-    await axios
-      .post(`${api}/user/add-client-payment-history`, values)
-      .then((response) => {
-        console.log(response);
-        if (response?.status === 200) {
-          messageApi.open({
-            type: "success",
-            content: response?.data.message
-          });
-          form.resetFields();
-        }
-      })
-      .catch((error) => {
-        messageApi.open({
-          type: "error",
-          content: error.response.data.message
-        });
-        console.log(error);
-      });
-  };
 
-  // payment add form
-  const range = (start, end) => {
-    const result = [];
-    for (let i = start; i < end; i++) {
-      result.push(i);
-    }
-    return result;
-  };
-  const disabledDate = (current) => {
-    // Disable dates in the future
-    if (current && current > dayjs().endOf("day")) {
-      return true;
-    }
-    // Disable dates in the past
-    if (current && current < dayjs().subtract(12, "month").endOf("month")) {
-      return true;
-    }
-    return false;
-  };
-
-  const edit2 = (record) => {
-    form.setFieldsValue({
-      paymentDate: record.paymentDate,
-      paymentMonth: record.paymentMonth,
-      paymentAmount: record.paymentAmount,
-      paymentStatus: record.paymentStatus
-    });
-    setEditingKeyModal(record.paymentDate);
-  };
-
-  const singleDelete2 = async (record) => {
-    try {
-      console.log(record);
-      const deleteClientId = record._id; // Assuming the key represents the client ID
-      console.log(deleteClientId);
-
-      // Make the DELETE request with the client ID in the request body
-      await axios
-        .delete(`${api}/user/delete-single-client-details`, {
-          data: { id: deleteClientId }
-        })
-        .then((res) => {
-          messageApi.open({
-            type: "warning",
-            content: res?.data.message
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-
-      // If the deletion is successful, update the client state
-      const updatedClient = client.filter(
-        (item) => item.key !== record.paymentDate
-      );
-      setClient(updatedClient);
-    } catch (error) {
-      console.error("Error deleting client:", error);
-      // Handle errors if necessary
-    }
-  };
-
-  const cancel2 = () => {
-    setEditingKeyModal("");
-  };
-
-  const save2 = async (record, paymentHistoryId) => {
-    try {
-      const row = await form.validateFields();
-
-      // Update only the payment status for the selected payment detail
-      const updatedPaymentDetail = {
-        ...record,
-        paymentStatus: row.paymentStatus
-      };
-
-      // Send a POST request to update the payment detail with its ID
-      const response = await axios.post(
-        `${api}/user/update-single-client-details`,
-        {
-          key: paymentHistoryId,
-          paymentHistoryId: updatedPaymentDetail._id,
-          updatedPaymentDetail: updatedPaymentDetail
-        }
-      );
-
-      if (response.status === 200) {
-        setEditingKey("");
-        message.success("Client data updated successfully");
-      } else {
-        message.error("Failed to update client data");
-      }
-
-      // Reset editing key modal
-      setEditingKeyModal("");
-    } catch (errInfo) {
-      console.log("Validate Failed:", errInfo);
-    }
-  };
-
-  const columns2 = [
-    {
-      title: "paymentDate",
-      dataIndex: "paymentDate",
-      ellipsis: true
-    },
-    {
-      title: "paymentAmount",
-      dataIndex: "paymentAmount",
-      ellipsis: true
-    },
-    {
-      title: "paymentMonth",
-      dataIndex: "paymentMonth",
-      ellipsis: true
-    },
-    {
-      title: "paymentStatus",
-      dataIndex: "paymentStatus",
-      editable: true,
-      ellipsis: true,
-      ...getColumnSearchProps("paymentStatus"),
-      render: (text, record, index) => {
-        const isEditingPaymentStatus =
-          isEditing2(record) && record.dataIndex === "paymentStatus"; // use record.dataIndex
-        return isEditingPaymentStatus ? (
-          <EditableCellPaymentStatus
-            editing={isEditingPaymentStatus}
-            dataIndex={record.dataIndex} // use record.dataIndex
-            title={record.title} // use record.title
-            inputType="select"
-            record={record}
-            index={index}
-          />
-        ) : (
-          text
-        );
-      }
-    },
-    {
-      title: "operation",
-      dataIndex: "operation",
-      ellipsis: true,
-      render: (_, record) => {
-        const editable = isEditing2(record);
-        return editable ? (
-          <span>
-            <Typography.Link
-              onClick={() => save2(record, selectedUser.key)}
-              style={{ marginRight: 8 }}
-            >
-              Save
-            </Typography.Link>
-            <Popconfirm title="Sure to cancel?" onConfirm={cancel2}>
-              <Link>Cancel</Link>
-            </Popconfirm>
-          </span>
-        ) : (
-          <Space size="middle">
-            <Typography.Link
-              disabled={editingKeyModal !== ""}
-              onClick={() => edit2(record)}
-            >
-              Edit
-            </Typography.Link>
-            <Typography.Link
-              disabled={editingKeyModal !== ""}
-              onClick={() => singleDelete2(record)}
-            >
-              Delete
-            </Typography.Link>
-          </Space>
-        );
-      }
-    }
-  ];
-
-  const mergedColumns2 = columns2.map((col) => {
-    if (!col.editable) {
-      return col;
-    }
-
-    return {
-      ...col,
-      onCell: (record) => ({
-        record,
-        inputType: col.dataIndex === "paymentStatus" ? "select" : "text",
-        dataIndex: col.dataIndex,
-        title: col.title,
-        editing: isEditing2(record)
-      })
-    };
-  });
-
-  const onFinish2 = async (values, userId) => {
-    try {
-      values.users = values.users.map((user) => {
-        const formattedMonths = user.paymentMonth.map((month) =>
-          dayjs(month).format("YYYY-MM")
-        );
-        return {
-          ...user,
-          paymentDate: dayjs(user.paymentDate).format("YYYY-MM-DD"),
-          paymentMonth: formattedMonths
-        };
-      });
-
-      console.log("Received values of form:", values.users);
-      console.log("Received values of form:", userId);
-
-      // Iterate through each user and send the payment details
-      for (const user of values.users) {
-        // Extract user details
-        const { paymentDate, paymentMonth, paymentAmount, paymentStatus } =
-          user;
-
-        // Use userId passed from the form
-        const clientId = userId;
-        // Perform Axios POST request to send payment details
-        const paymentResponse = await axios.post(
-          `${api}/user/add-client-payment-history`,
-          {
-            clientId,
-            paymentDate,
-            paymentMonth,
-            paymentAmount,
-            paymentStatus
-          }
-        );
-
-        // Log response
-        console.log("Payment details response:", paymentResponse.data);
-      }
-
-      // Reset form fields if necessary
-      form.resetFields();
-
-      // Display success message if needed
-      // messageApi.open({
-      //   type: "success",
-      //   content: "Payment details submitted successfully"
-      // });
-    } catch (error) {
-      // Handle errors
-      messageApi.open({
-        type: "error",
-        content: error.response.data.message
-      });
-      console.log(error);
-    }
-  };
-
-  // payment add form
-  // modal payment table
   const calculatePaymentCounts = (clients) => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth(); // Month is zero-based
@@ -801,8 +480,10 @@ const Home = () => {
       );
     }).length;
 
+
+
+ 
     const pendingClientsCount = activeClients.filter((client) => {
-      // Check if the client's payment status is 'pending'
       return (
         client.paymentStatus === "pending" &&
         !client.paymentDetails.some((payment) => {
@@ -855,42 +536,7 @@ const Home = () => {
     }
   }, [lastFetchedMonthYear, api, loading]);
 
-  const processPendingPayments = async (users, currentMonthYear) => {
-    try {
-      for (const user of users) {
-        // console.log("Processing user:", user);
-        const paymentResponse = await axios.post(
-          `${api}/user/client-payment-details`,
-          {
-            clientId: user.id,
-            month: currentMonthYear.month,
-            year: currentMonthYear.year
-          }
-        );
-
-        // console.log("Payment details response:", paymentResponse.data);
-
-        if (paymentResponse.data.paymentDetails.length === 0) {
-          // console.log("Adding payment details for user:", user);
-          const paymentDate = new Date();
-          const paymentAmount = 100;
-          let paymentStatus = user.hasPaid ? "paid" : "pending";
-
-          await axios.post(`${api}/user/add-client-payment-history`, {
-            clientId: user.id,
-            paymentDate,
-            paymentAmount,
-            paymentStatus
-          });
-
-          console.log("Payment details added successfully.");
-        }
-      }
-    } catch (error) {
-      console.error("Error processing pending payments:", error);
-    }
-  };
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -906,27 +552,13 @@ const Home = () => {
     fetchData(); // Call the async function immediately
   }, [loading, form]);
 
-  const downloadQRCode = () => {
-    const canvas = document.getElementById("myqrcode")?.querySelector("canvas");
-    if (canvas) {
-      const url = canvas.toDataURL();
-      const a = document.createElement("a");
-      a.download = "QRCode.png";
-      a.href = url;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-  };
-
   return (
     <>
       {contextHolder}
       <Row gutter={16} wrap align="middle">
         <Col className="gutter-row" span={6} lg={6} md={6} sm={12} xs={24}>
-          <Button danger onClick={() => localStorage.clear()}>
-            Logout
-          </Button>
+        <Button danger onClick={() => { localStorage.clear(); window.location.reload(); }}>Logout</Button>
+
         </Col>
         <Col className="gutter-row" span={6} lg={6} md={6} sm={12} xs={24}>
           <p>Total Client: {allClientsCount.length}</p>
@@ -971,7 +603,6 @@ const Home = () => {
               bordered
               dataSource={client}
               columns={mergedColumns}
-              // rowSelection={rowSelection}
               rowClassName="editable-row"
               pagination={{
                 onChange: cancel
@@ -1101,161 +732,16 @@ const Home = () => {
         </Col>
       </Row>
 
-      <Modal
-        visible={isModalOpen}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        width={"80%"}
-      >
-        {selectedUser && (
-          <>
-            <Descriptions title="User Info">
-              {Object.entries(selectedUser)
-                .filter(([key]) => key !== "paymentDetails")
-                .map(([key, value]) => (
-                  <Descriptions.Item key={key} label={key}>
-                    {value}
-                  </Descriptions.Item>
-                ))}
-            </Descriptions>
-            <Form
-              form={modalForm}
-              name="dynamic_form_nest_item"
-              onFinish={(values) => onFinish2(values, selectedUser.key)}
-            >
-              <Table
-                components={{
-                  body: {
-                    cell: EditableCellPaymentStatus
-                  }
-                }}
-                bordered
-                dataSource={selectedUser?.paymentDetails}
-                columns={mergedColumns2}
-                pagination={{ onChange: cancel }}
-                scroll={{ y: 500 }}
-                // Add rowClassName to conditionally apply editing styles
-                rowClassName={(record) =>
-                  isEditing(record) ? "editing-row" : ""
-                }
-              />
-              <Form.List name="users">
-                {(fields, { add, remove }) => (
-                  <>
-                    {fields.map(({ key, name, fieldKey, ...restField }) => (
-                      <Space
-                        key={key}
-                        style={{ marginTop: 10 }}
-                        align="baseline"
-                        wrap
-                      >
-                        <Form.Item
-                          {...restField}
-                          name={[name, "userId"]} // Add a hidden field for user ID
-                          fieldKey={[fieldKey, "userId"]} // Add a hidden field for user ID
-                          hidden // Hide the user ID field
-                        >
-                          <Input type="hidden" value={selectedUser.key} />
-                        </Form.Item>
-                        <Form.Item
-                          style={{ width: "100%" }}
-                          {...restField}
-                          name={[name, "paymentDate"]}
-                          fieldKey={[fieldKey, "paymentDate"]}
-                          rules={[
-                            {
-                              required: true,
-                              message: "Missing paymentDate"
-                            }
-                          ]}
-                        >
-                          <DatePicker
-                            style={{ width: "100%" }}
-                            placeholder="Payment Date"
-                          />
-                        </Form.Item>
-
-                        <Form.Item
-                          style={{ width: "100%" }}
-                          {...restField}
-                          name={[name, "paymentMonth"]}
-                          fieldKey={[fieldKey, "paymentMonth"]}
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select a payment month"
-                            }
-                          ]}
-                        >
-                          <DatePicker
-                            multiple
-                            picker="month"
-                            onChange={onChange}
-                            placeholder="Select payment month"
-                          />
-                        </Form.Item>
-
-                        <Form.Item
-                          style={{ width: "100%" }}
-                          {...restField}
-                          name={[name, "paymentAmount"]}
-                          fieldKey={[fieldKey, "paymentAmount"]}
-                          rules={[
-                            {
-                              required: true,
-                              message: "Missing last Payment Amount"
-                            }
-                          ]}
-                        >
-                          <Input placeholder="Payment Amount" />
-                        </Form.Item>
-
-                        <Form.Item
-                          style={{ width: "100%", flex: "1 1 100%" }}
-                          {...restField}
-                          name={[name, "paymentStatus"]}
-                          fieldKey={[fieldKey, "paymentStatus"]}
-                          rules={[
-                            {
-                              required: true,
-                              message: "Please select a payment status"
-                            }
-                          ]}
-                        >
-                          <Select placeholder="Select a payment Status">
-                            <Select.Option value="paid">Paid</Select.Option>
-                            <Select.Option value="pending">
-                              Pending
-                            </Select.Option>
-                          </Select>
-                        </Form.Item>
-
-                        <MinusCircleOutlined onClick={() => remove(name)} />
-                      </Space>
-                    ))}
-                    <Form.Item>
-                      <Button
-                        type="dashed"
-                        onClick={() => add()}
-                        block
-                        icon={<PlusOutlined />}
-                      >
-                        Add field
-                      </Button>
-                    </Form.Item>
-                  </>
-                )}
-              </Form.List>
-
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
-              </Form.Item>
-            </Form>
-          </>
-        )}
-      </Modal>
+      <PaymentTableModal
+        selectedUser={selectedUser}
+        isModalOpen={isModalOpen}
+        handleOk={handleOk}
+        handleCancel={handleCancel}
+        modalForm={modalForm}
+        messageApi={messageApi}
+        client={client}
+        setClient={setClient}
+      />
     </>
   );
 };

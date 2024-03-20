@@ -46,7 +46,8 @@ const SideNav = () => {
     ))}
   </Menu>
   <div className="logout-button">
-    <Button danger onClick={()=> localStorage.clear()}>Logout</Button>
+  <Button danger onClick={() => { localStorage.clear(); window.location.reload(); }}>Logout</Button>
+
   </div>
 </Sider>
 
